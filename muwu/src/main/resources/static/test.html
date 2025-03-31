@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test GetAllUserInfo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .user-info {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .user-info p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Test GetAllUserInfo API</h1>
+<button id="fetchUsersBtn">Fetch User Info</button>
+<div id="usersContainer"></div>
+
+<script>
+    // 按钮点击事件处理函数
+    document.getElementById('fetchUsersBtn').addEventListener('click', function() {
+        // 清空容器
+        const container = document.getElementById('usersContainer');
+        container.innerHTML = '';
+
+        // 发送 GET 请求
+        fetch('/getAllUserInfo/getAllUserInfo', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 显示用户信息
+                data.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-info';
+                    userDiv.innerHTML = `
+                        <p><strong>User ID:</strong> ${user.userId}</p>
+                        <p><strong>Telephone:</strong> ${user.telephone}</p>
+                        <p><strong>Username:</strong> ${user.username}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Password Hash:</strong> ${user.passwordHash}</p>
+                        <p><strong>Storage Quota:</strong> ${user.storageQuota} bytes</p>
+                        <p><strong>Used Storage:</strong> ${user.usedStorage} bytes</p>
+                    `;
+                    container.appendChild(userDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching user info:', error);
+                container.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            });
+    });
+</script>
+</body>
+</html>
