@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试</title>
+</head>
+<body>
+<h1>登录</h1>
+<form id="loginForm">
+    <label for="count">账号（用户名/邮箱/手机号）:</label>
+    <input type="text" id="count" name="count" required><br><br>
+    <label for="password">密码:</label>
+    <input type="password" id="password" name="password" required><br><br>
+    <button type="submit">登录</button>
+</form>
+<div id="response"></div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // 阻止表单默认提交
+
+        const count = document.getElementById('count').value;
+        const password = document.getElementById('password').value;
+
+        const loginRequest = {
+            count: count,
+            password: password
+        };
+
+        fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginRequest),
+            credentials: 'include'  // 确保发送cookie
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('登录失败');
+                }
+            })
+            .then(data => {
+                document.getElementById('response').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('response').innerText = error.message;
+            });
+    });
+</script>
+</body>
+</html>

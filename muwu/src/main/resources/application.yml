@@ -1,5 +1,10 @@
 server:
     port: 8082
+#    ssl:
+#        key-store: classpath:keystore.jks
+#        key-store-password: 123321
+#        key-store-type: JKS
+#        key-alias: myalias
 
 spring:
     datasource:

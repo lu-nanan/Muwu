@@ -16,4 +16,29 @@ public interface UserMapper {
             "FROM users"
     })
     List<UserInfo> getAllUsers();
+
+    @Select({
+            "SELECT",
+            "password_hash",
+            "FROM users",
+            "WHERE user_id = #{userId}"
+    })
+    String getPasswordHashByUserId(int userId);
+
+
+    @Select({
+            "SELECT",
+            "user_id",
+            "FROM users",
+            "WHERE telephone = #{phone}"
+    })
+    int getUserIdByPhone(String phone);
+
+    @Select({
+            "SELECT",
+            "user_id",
+            "FROM users",
+            "WHERE email = #{email}"
+    })
+    int getUserIdByEmail(String email);
 }

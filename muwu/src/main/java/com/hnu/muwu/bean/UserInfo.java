@@ -1,8 +1,7 @@
 package com.hnu.muwu.bean;
 
-
 public class UserInfo {
-    private Integer userId;
+    private int userId;
     private String telephone;
     private String username;
     private String email;
@@ -16,7 +15,7 @@ public class UserInfo {
 
     // 全参构造（可选）
     public UserInfo(
-            Integer userId,
+            int userId,
             String telephone,
             String username,
             String email,
@@ -34,11 +33,11 @@ public class UserInfo {
     }
 
     // Getters & Setters
-    public Integer getUserId() {
+    public int getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(int userId) {
         this.userId = userId;
     }
 
