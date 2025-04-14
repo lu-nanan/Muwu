@@ -12,6 +12,24 @@ spring:
         username: muwumaimaimai
         password: hiiyp4TLx6nMDcM1
         driver-class-name: com.mysql.cj.jdbc.Driver
+    data:
+        redis:
+            host: localhost
+            port: 6379
+            password: 123456
+            database: 0
+    mail:
+        host: smtp.qq.com
+        username: lu_nanan@foxmail.com
+        password: oaqddcepuhcqddhe
+        port: 25
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+
 
 mybatis:
     type-aliases-package: com.hnu.muwu.bean

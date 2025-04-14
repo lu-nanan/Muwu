@@ -1,5 +1,7 @@
 package com.hnu.muwu.bean;
 
+import java.util.Date;
+
 public class UserInfo {
     private int userId;
     private String telephone;
@@ -8,6 +10,7 @@ public class UserInfo {
     private String passwordHash;
     private Long storageQuota = 10737418240L; // 默认值 10GB（按需保留）
     private Long usedStorage = 0L;           // 默认值 0（按需保留）
+    private Date createTime;
 
     // 无参构造
     public UserInfo() {
@@ -21,7 +24,8 @@ public class UserInfo {
             String email,
             String passwordHash,
             Long storageQuota,
-            Long usedStorage
+            Long usedStorage,
+            Date createTime
     ) {
         this.userId = userId;
         this.telephone = telephone;
@@ -30,6 +34,7 @@ public class UserInfo {
         this.passwordHash = passwordHash;
         this.storageQuota = storageQuota;
         this.usedStorage = usedStorage;
+        this.createTime = createTime;
     }
 
     // Getters & Setters
@@ -89,6 +94,13 @@ public class UserInfo {
         this.usedStorage = usedStorage;
     }
 
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
 
     // 可选：toString() 方法
     @Override
@@ -101,6 +113,7 @@ public class UserInfo {
                 ", passwordHash='" + passwordHash + '\'' +
                 ", storageQuota=" + storageQuota +
                 ", usedStorage=" + usedStorage +
+                ", createTime=" + createTime +
                 '}';
     }
 }

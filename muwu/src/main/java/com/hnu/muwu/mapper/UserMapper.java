@@ -11,8 +11,14 @@ import java.util.List;
 public interface UserMapper {
     @Select({
             "SELECT",
-            "user_id, telephone, username, email, password_hash,",
-            "storage_quota, used_storage",
+            "user_id AS userId,",
+            "telephone,",
+            "username,",
+            "email,",
+            "password_hash AS passwordHash,",
+            "storage_quota AS storageQuota,",
+            "used_storage AS usedStorage,",
+            "created_at AS createTime",
             "FROM users"
     })
     List<UserInfo> getAllUsers();
