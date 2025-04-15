@@ -14,4 +14,6 @@ public interface UserService {
     int getUserIdByPhone(String count);
 
     int getUserIdByEmail(String count);
+
+    boolean checkUserAccount(String count);
 }

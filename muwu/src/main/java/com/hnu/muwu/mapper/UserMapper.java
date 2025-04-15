@@ -29,22 +29,24 @@ public interface UserMapper {
             "FROM users",
             "WHERE user_id = #{userId}"
     })
-    String getPasswordHashByUserId(int userId);
+    String getPasswordHashByUserId(Integer userId);
 
 
     @Select({
-            "SELECT",
-            "user_id",
-            "FROM users",
-            "WHERE telephone = #{phone}"
+            "SELECT COALESCE((SELECT user_id FROM users WHERE telephone = #{phone}), -1)"
     })
-    int getUserIdByPhone(String phone);
+    Integer getUserIdByPhone(String phone);
+
+    @Select({
+            "SELECT COALESCE((SELECT user_id FROM users WHERE email = #{email}), -1)"
+    })
+    Integer getUserIdByEmail(String email);
 
     @Select({
             "SELECT",
-            "user_id",
+            "COUNT(*)",
             "FROM users",
-            "WHERE email = #{email}"
+            "WHERE user_id = #{userId}"
     })
-    int getUserIdByEmail(String email);
+    Integer findUserId(Integer userId);
 }

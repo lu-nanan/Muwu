@@ -42,5 +42,11 @@ public class UserServiceImpl implements UserService{
         }
     }
 
+    @Override
+    public boolean checkUserAccount(String count) {
+        Integer c = userMapper.findUserId(Integer.parseInt(count));
+        return c != 0;
+    }
+
 
 }

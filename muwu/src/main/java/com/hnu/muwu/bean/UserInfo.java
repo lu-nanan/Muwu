@@ -3,7 +3,7 @@ package com.hnu.muwu.bean;
 import java.util.Date;
 
 public class UserInfo {
-    private int userId;
+    private Integer userId;
     private String telephone;
     private String username;
     private String email;
@@ -18,7 +18,7 @@ public class UserInfo {
 
     // 全参构造（可选）
     public UserInfo(
-            int userId,
+            Integer userId,
             String telephone,
             String username,
             String email,
@@ -38,11 +38,11 @@ public class UserInfo {
     }
 
     // Getters & Setters
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 

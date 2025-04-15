@@ -2,7 +2,6 @@ package com.hnu.muwu.controller;
 
 import com.hnu.muwu.DTO.LoginRequest;
 import com.hnu.muwu.service.UserService;
-import com.hnu.muwu.service.EmailService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -17,8 +16,6 @@ public class AuthController {
     @Resource
     private UserService userService;
 
-    @Resource
-    private EmailService emailHelper;
 
     /**
      * 账密登录验证
@@ -35,14 +32,23 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Invalid username or password");
         }
         boolean isValid;
-        int userId;
+        Integer userId;
         // 判断其为手机号、账号还是邮箱
         if (count.contains("@")) {
             userId = userService.getUserIdByEmail(count);
+            if (userId == -1) {
+                return ResponseEntity.badRequest().body("当前邮箱未注册，请先注册");
+            }
         } else if (count.length() == 11) {
             userId = userService.getUserIdByPhone(count);
+            if (userId == -1) {
+                return ResponseEntity.badRequest().body("当前手机号未注册，请先注册");
+            }
         } else {
             userId = Integer.parseInt(count);
+            if (!userService.checkUserAccount(count)) {
+                return ResponseEntity.badRequest().body("账号输入错误");
+            }
         }
         isValid = userService.checkCredentialsWithUserId(userId, password);
         if (isValid) {
@@ -50,40 +56,7 @@ public class AuthController {
             session.setAttribute("user", userId);
             return ResponseEntity.ok("登录成功");
         } else {
-            return ResponseEntity.badRequest().body("Invalid username or password");
-        }
-    }
-
-    /**
-     * 发送验证码
-     *
-     * @param email 邮箱地址
-     * @return ResponseEntity 返回发送结果
-     */
-    @PostMapping("/sendVerificationCode")
-    public ResponseEntity<?> sendVerificationCode(@RequestParam String email) {
-        try {
-            emailHelper.sendVerificationCode(email);
-            return ResponseEntity.ok("验证码发送成功。");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * 验证验证码
-     *
-     * @param email 邮箱地址
-     * @param code  用户输入的验证码
-     * @return ResponseEntity 返回验证结果
-     */
-    @PostMapping("/verifyCode")
-    public ResponseEntity<?> verifyCode(@RequestParam String email, @RequestParam String code) {
-        boolean isValid = emailHelper.verifyCode(email, code);
-        if (isValid) {
-            return ResponseEntity.ok("验证码验证成功。");
-        } else {
-            return ResponseEntity.badRequest().body("验证码无效或已过期。");
+            return ResponseEntity.badRequest().body("账号或密码错误，请重新输入");
         }
     }
 }

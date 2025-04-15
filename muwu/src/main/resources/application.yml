@@ -17,7 +17,7 @@ spring:
             host: localhost
             port: 6379
             password: 123456
-            database: 0
+
     mail:
         host: smtp.qq.com
         username: lu_nanan@foxmail.com
