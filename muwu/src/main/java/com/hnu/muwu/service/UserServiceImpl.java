@@ -34,7 +34,10 @@ public class UserServiceImpl implements UserService{
     public boolean checkCredentialsWithUserId(int count, String password) {
         String passwordHash = userMapper.getPasswordHashByUserId(count);
         String[] s = passwordHash.split(":");
+        System.out.println(s[0]);
+        System.out.println(s[1]);
         try{
+            System.out.println(HashCodeHelper.verifyPassword(password, s[0], s[1]));
             return HashCodeHelper.verifyPassword(password, s[0], s[1]);
         } catch (NoSuchAlgorithmException e) {
             System.err.println("Algorithm not available: " + e.getMessage());

@@ -1,28 +1,23 @@
 package com.hnu.muwu.DTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 
 public class LoginRequest {
-    private String count;
+    private String account;
     private String password;
 
     public LoginRequest() {}
 
     public LoginRequest(String count, String password) {
-        this.count = count;
+        this.account = count;
         this.password = password;
     }
 
-    public String getCount() {
-        return count;
+    public String getAccount() {
+        return account;
     }
 
-    public void setCount(String count) {
-        this.count = count;
+    public void setAccount(String account) {
+        this.account = account;
     }
 
     public String getPassword() {
@@ -36,7 +31,7 @@ public class LoginRequest {
     @Override
     public String toString() {
         return "LoginRequest{" +
-                "count='" + count + '\'' +
+                "count='" + account + '\'' +
                 ", password=' " + password + '\'' +
                 '}';
     }

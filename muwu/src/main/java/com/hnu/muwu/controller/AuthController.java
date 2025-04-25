@@ -26,30 +26,33 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(HttpServletRequest request, @RequestBody LoginRequest loginRequest) {
-        String count = loginRequest.getCount();
+        String account = loginRequest.getAccount();
         String password = loginRequest.getPassword();
-        if (count == null || password == null) {
+        System.out.println(account);
+        System.out.println(password);
+        if (account == null || password == null) {
             return ResponseEntity.badRequest().body("Invalid username or password");
         }
         boolean isValid;
         Integer userId;
         // 判断其为手机号、账号还是邮箱
-        if (count.contains("@")) {
-            userId = userService.getUserIdByEmail(count);
+        if (account.contains("@")) {
+            userId = userService.getUserIdByEmail(account);
             if (userId == -1) {
                 return ResponseEntity.badRequest().body("当前邮箱未注册，请先注册");
             }
-        } else if (count.length() == 11) {
-            userId = userService.getUserIdByPhone(count);
+        } else if (account.length() == 11) {
+            userId = userService.getUserIdByPhone(account);
             if (userId == -1) {
                 return ResponseEntity.badRequest().body("当前手机号未注册，请先注册");
             }
         } else {
-            userId = Integer.parseInt(count);
-            if (!userService.checkUserAccount(count)) {
+            userId = Integer.parseInt(account);
+            if (!userService.checkUserAccount(account)) {
                 return ResponseEntity.badRequest().body("账号输入错误");
             }
         }
+        System.out.println(userId);
         isValid = userService.checkCredentialsWithUserId(userId, password);
         if (isValid) {
             HttpSession session = request.getSession();

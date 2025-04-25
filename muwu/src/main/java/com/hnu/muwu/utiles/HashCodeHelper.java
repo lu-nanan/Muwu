@@ -34,8 +34,9 @@ public class HashCodeHelper {
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         // 示例演示了密码哈希和加盐存储的过程
-        String password = "myPassword123";
-        String salt = generateSalt();
+        String password = "123456";
+//        String salt = generateSalt();
+        String salt = "bX+dtAtgQe+XePuYwymxjQ==";
         String hashedPassword = hashPassword(password, salt);
 
         // 存储用户信息，包括哈希后的密码和盐
