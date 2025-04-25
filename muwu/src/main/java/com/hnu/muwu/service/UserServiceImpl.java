@@ -1,5 +1,6 @@
 package com.hnu.muwu.service;
 
+import com.hnu.muwu.DTO.RegisterRequest;
 import com.hnu.muwu.bean.UserInfo;
 import com.hnu.muwu.mapper.UserMapper;
 import com.hnu.muwu.utiles.HashCodeHelper;
@@ -24,7 +25,6 @@ public class UserServiceImpl implements UserService{
     public int getUserIdByPhone(String count){
         return userMapper.getUserIdByPhone(count);
     }
-
     @Override
     public int getUserIdByEmail(String count){
         return userMapper.getUserIdByEmail(count);
@@ -47,6 +47,13 @@ public class UserServiceImpl implements UserService{
         Integer c = userMapper.findUserId(Integer.parseInt(count));
         return c != 0;
     }
-
-
+    public boolean isEmailExists(String email){
+        return userMapper.isEmailExists(email);
+    }
+    public boolean isPhoneExists(String phone){
+        return userMapper.isPhoneExists(phone);
+    }
+    public int insertUser(RegisterRequest registerRequest){
+        return userMapper.insertUser(registerRequest);
+    }
 }

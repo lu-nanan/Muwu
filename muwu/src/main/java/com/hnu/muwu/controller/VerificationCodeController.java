@@ -1,9 +1,12 @@
 package com.hnu.muwu.controller;
 
 
+import com.hnu.muwu.DTO.LoginRequest;
+import com.hnu.muwu.DTO.SendVerificationCodeRequest;
 import com.hnu.muwu.service.EmailService;
 import com.hnu.muwu.service.UserService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +37,16 @@ public class VerificationCodeController {
             return ResponseEntity.ok("验证码发送成功。");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PostMapping("/sendRegisterVerificationCode")
+    public ResponseEntity<?> sendRegisterVerificationCode(HttpServletRequest request, @RequestBody SendVerificationCodeRequest sendVerificationCodeRequest) {
+        String email = sendVerificationCodeRequest.getEmail();
+        try {
+            emailHelper.sendVerificationCode(email);
+            return ResponseEntity.ok("验证码发送成功。");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("发送失败，稍后再试");
         }
     }
 
