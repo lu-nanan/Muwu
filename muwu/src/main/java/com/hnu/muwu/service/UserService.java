@@ -1,5 +1,6 @@
 package com.hnu.muwu.service;
 
+import com.hnu.muwu.DTO.RegisterRequest;
 import com.hnu.muwu.bean.UserInfo;
 
 import java.util.List;
@@ -14,6 +15,8 @@ public interface UserService {
     int getUserIdByPhone(String count);
 
     int getUserIdByEmail(String count);
-
     boolean checkUserAccount(String count);
+    public boolean isPhoneExists(String phone);
+    public boolean isEmailExists(String email);
+    public int insertUser(RegisterRequest registerRequest);
 }
