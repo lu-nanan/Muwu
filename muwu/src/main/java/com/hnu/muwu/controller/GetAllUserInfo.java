@@ -35,26 +35,26 @@
 ////}
 //
 //
-////package com.hnu.muwu.controller;
-////
-////import com.hnu.muwu.bean.UserInfo;
-////import com.hnu.muwu.service.UserService;
-////import jakarta.annotation.Resource;
-////import org.springframework.web.bind.annotation.*;
-////
-////        import java.util.List;
-////
-////@CrossOrigin(origins = "*")
-////@RestController
-////@RequestMapping("/users")  // 使用资源名词复数作为根路径
-////public class UserController {
-////
-////    @Resource
-////    private UserService userService;
-////
-////    // 使用 GET 方法获取资源集合，路径直接映射到根路径
-////    @GetMapping  // 简化写法，等价于 @RequestMapping(method = RequestMethod.GET)
-////    public List<UserInfo> getAllUsers() {
-////        return userService.getAllUsers();
-////    }
-////}
+//package com.hnu.muwu.controller;
+//
+//import com.hnu.muwu.bean.UserInfo;
+//import com.hnu.muwu.service.UserService;
+//import jakarta.annotation.Resource;
+//import org.springframework.web.bind.annotation.*;
+//
+//        import java.util.List;
+//
+//@CrossOrigin(origins = "*")
+//@RestController
+//@RequestMapping("/users")  // 使用资源名词复数作为根路径
+//public class UserController {
+//
+//    @Resource
+//    private UserService userService;
+//
+//    // 使用 GET 方法获取资源集合，路径直接映射到根路径
+//    @GetMapping  // 简化写法，等价于 @RequestMapping(method = RequestMethod.GET)
+//    public List<UserInfo> getAllUsers() {
+//        return userService.getAllUsers();
+//    }
+//}

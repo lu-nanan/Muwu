@@ -1,7 +1,6 @@
 package com.hnu.muwu.controller;
 
 
-import com.hnu.muwu.DTO.LoginRequest;
 import com.hnu.muwu.DTO.SendVerificationCodeRequest;
 import com.hnu.muwu.service.EmailService;
 import com.hnu.muwu.service.UserService;

@@ -18,9 +18,6 @@ public class RegisterController {
     private UserService userService;
     @Resource
     private EmailServiceImpl emailService;
-    private HashCodeHelper hashCodeHelper = new HashCodeHelper();
-
-
     @PostMapping("/register")
     public ResponseEntity<?> Register(HttpServletRequest request, @RequestBody RegisterRequest registerRequest) {
         String username=registerRequest.getUsername();
