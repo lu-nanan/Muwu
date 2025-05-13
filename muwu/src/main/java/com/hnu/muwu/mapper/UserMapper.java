@@ -66,8 +66,11 @@ public interface UserMapper {
             "WHERE username = #{username}"
     })
     List<UserInfo> searchUsersByUsername(String username);
+
+
     @Select("SELECT EXISTS (SELECT 1 FROM users WHERE telephone = #{phone})")
     boolean isPhoneExists(String phone);
+
     @Select("SELECT EXISTS (SELECT 1 FROM users WHERE telephone = #{email})")
     boolean isEmailExists(String email);
 }
