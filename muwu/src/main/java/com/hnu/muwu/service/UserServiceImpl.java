@@ -23,10 +23,17 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public int getUserIdByPhone(String count){
+        if (userMapper.findPhone(count) == 0) {
+            return -1;
+        }
         return userMapper.getUserIdByPhone(count);
     }
+
     @Override
     public int getUserIdByEmail(String count){
+        if (userMapper.findEmail(count) == 0) {
+            return -1;
+        }
         return userMapper.getUserIdByEmail(count);
     }
 
@@ -50,12 +57,8 @@ public class UserServiceImpl implements UserService{
         Integer c = userMapper.findUserId(Integer.parseInt(count));
         return c != 0;
     }
-    public boolean isEmailExists(String email){
-        return userMapper.isEmailExists(email);
-    }
-    public boolean isPhoneExists(String phone){
-        return userMapper.isPhoneExists(phone);
-    }
+
+    @Override
     public int insertUser(RegisterRequest registerRequest){
         return userMapper.insertUser(registerRequest);
     }

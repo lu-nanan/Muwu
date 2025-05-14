@@ -43,6 +43,7 @@ public interface UserMapper {
             "WHERE email = #{email}"
     })
     int getUserIdByEmail(String email);
+
     @Select({
             "SELECT",
             "COUNT(*)",
@@ -50,6 +51,23 @@ public interface UserMapper {
             "WHERE user_id = #{userId}"
     })
     Integer findUserId(Integer userId);
+
+    @Select({
+            "SELECT",
+            "COUNT(*)",
+            "FROM users",
+            "WHERE email = #{email}"
+    })
+    Integer findEmail(String email);
+
+    @Select({
+            "SELECT",
+            "COUNT(*)",
+            "FROM users",
+            "WHERE telephone = #{phone}"
+    })
+    Integer findPhone(String phone);
+
     // 新增插入用户的方法
     @Insert({
             "INSERT INTO users (telephone, username, email, password_hash, storage_quota, used_storage)",
@@ -66,11 +84,4 @@ public interface UserMapper {
             "WHERE username = #{username}"
     })
     List<UserInfo> searchUsersByUsername(String username);
-
-
-    @Select("SELECT EXISTS (SELECT 1 FROM users WHERE telephone = #{phone})")
-    boolean isPhoneExists(String phone);
-
-    @Select("SELECT EXISTS (SELECT 1 FROM users WHERE telephone = #{email})")
-    boolean isEmailExists(String email);
 }

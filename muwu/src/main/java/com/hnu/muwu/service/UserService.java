@@ -15,8 +15,8 @@ public interface UserService {
     int getUserIdByPhone(String count);
 
     int getUserIdByEmail(String count);
+
     boolean checkUserAccount(String count);
-    public boolean isPhoneExists(String phone);
-    public boolean isEmailExists(String email);
+
     public int insertUser(RegisterRequest registerRequest);
 }

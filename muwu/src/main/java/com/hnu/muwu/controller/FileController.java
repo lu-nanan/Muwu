@@ -67,6 +67,14 @@ public class FileController {
 
             if (result > 0) {
                 Map<String, Object> response = new HashMap<>();
+                if (fileType.equals("png") || fileType.equals("jpg") || fileType.equals("jpeg")) {
+                    Boolean flag = fileService.fileOperatorExtend(filePath, fileType);
+                    if (flag) {
+                        response.put("isRichText", true);
+                    } else {
+                        response.put("isRichText", false);
+                    }
+                }
                 response.put("message", "文件上传成功");
                 response.put("filename", originalFilename);
                 response.put("filePath", filePath);

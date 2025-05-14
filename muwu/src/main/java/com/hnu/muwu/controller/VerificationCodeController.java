@@ -38,6 +38,7 @@ public class VerificationCodeController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @PostMapping("/sendRegisterVerificationCode")
     public ResponseEntity<?> sendRegisterVerificationCode(HttpServletRequest request, @RequestBody SendVerificationCodeRequest sendVerificationCodeRequest) {
         String email = sendVerificationCodeRequest.getEmail();

@@ -32,10 +32,10 @@ public class RegisterController {
                 email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body("注册失败，请输入完整信息");
         }
-        if(userService.isEmailExists(email)){
+        if(userService.getUserIdByEmail(email) != -1){
             return ResponseEntity.badRequest().body("注册失败，邮箱已存在");
         }
-        if(userService.isPhoneExists(phone)){
+        if(userService.getUserIdByPhone(phone) != -1){
             return ResponseEntity.badRequest().body("注册失败，手机号已存在");
         }
         if(!emailService.verifyCode(email,String.valueOf(verificationCode))){

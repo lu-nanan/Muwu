@@ -1,5 +1,6 @@
 package com.hnu.muwu.controller;
 
+import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import com.hnu.muwu.DTO.LoginRequest;
 import com.hnu.muwu.service.UserService;
 import jakarta.annotation.Resource;
@@ -7,6 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -30,8 +34,10 @@ public class AuthController {
         String password = loginRequest.getPassword();
         System.out.println(account);
         System.out.println(password);
+        Map<String, Object> response = new HashMap<>();
         if (account == null || password == null) {
-            return ResponseEntity.badRequest().body("Invalid username or password");
+            response.put("message", "Invalid username or password");
+            return ResponseEntity.badRequest().body(response);
         }
         boolean isValid;
         Integer userId;
@@ -39,27 +45,31 @@ public class AuthController {
         if (account.contains("@")) {
             userId = userService.getUserIdByEmail(account);
             if (userId == -1) {
-                return ResponseEntity.badRequest().body("当前邮箱未注册，请先注册");
+                response.put("message", "当前邮箱未注册，请先注册");
+                return ResponseEntity.badRequest().body(response);
             }
         } else if (account.length() == 11) {
             userId = userService.getUserIdByPhone(account);
             if (userId == -1) {
-                return ResponseEntity.badRequest().body("当前手机号未注册，请先注册");
+                response.put("message", "当前手机号未注册，请先注册");
+                return ResponseEntity.badRequest().body(response);
             }
         } else {
             userId = Integer.parseInt(account);
             if (!userService.checkUserAccount(account)) {
-                return ResponseEntity.badRequest().body("账号输入错误");
+                response.put("message", "账号输入错误");
+                return ResponseEntity.badRequest().body(response);
             }
         }
         System.out.println(userId);
         isValid = userService.checkCredentialsWithUserId(userId, password);
         if (isValid) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", userId);
-            return ResponseEntity.ok("登录成功");
+            response.put("message", "登录成功");
+            response.put("userId", userId);
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.badRequest().body("账号或密码错误，请重新输入");
+            response.put("message", "登录失败");
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

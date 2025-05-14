@@ -1,53 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录测试</title>
 </head>
 <body>
-<h1>登录</h1>
+<h1>用户登录</h1>
 <form id="loginForm">
-    <label for="count">账号（用户名/邮箱/手机号）:</label>
-    <input type="text" id="count" name="count" required><br><br>
+    <label for="account">账号（邮箱/手机号/用户名）:</label>
+    <input type="text" id="account" name="account" required>
+    <br>
     <label for="password">密码:</label>
-    <input type="password" id="password" name="password" required><br><br>
+    <input type="password" id="password" name="password" required>
+    <br>
     <button type="submit">登录</button>
 </form>
-<div id="response"></div>
+<div id="responseMessage"></div>
 
 <script>
     document.getElementById('loginForm').addEventListener('submit', function(event) {
-        event.preventDefault();  // 阻止表单默认提交
+        event.preventDefault(); // 阻止表单默认提交行为
 
-        const count = document.getElementById('count').value;
+        const account = document.getElementById('account').value;
         const password = document.getElementById('password').value;
 
-        const loginRequest = {
-            count: count,
-            password: password
-        };
-
-        fetch('/auth/login', {
+        fetch('http://localhost:8082/auth/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(loginRequest),
-            credentials: 'include'  // 确保发送cookie
+            body: JSON.stringify({ account: account, password: password }),
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error('登录失败');
-                }
-            })
+            .then(response => response.json())
             .then(data => {
-                document.getElementById('response').innerText = data;
+                document.getElementById('responseMessage').innerText = data.message;
             })
             .catch(error => {
-                document.getElementById('response').innerText = error.message;
+                console.error('错误:', error);
+                document.getElementById('responseMessage').innerText = '登录请求失败';
             });
     });
 </script>
