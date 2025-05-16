@@ -1,3 +1,5 @@
+import ast
+import clip
 import paddlehub as hub
 import shutil
 import cv2
@@ -11,6 +13,8 @@ import pdfplumber
 import pytesseract
 from spire.pdf import PdfDocument
 from spire.pdf import FileFormat
+import torch
+from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # RabbitMQ 连接配置
 credentials = pika.PlainCredentials('admin', '123456')
@@ -148,50 +152,131 @@ def pdf_to_word(pdf_file_path):
         print(f"PDF转换失败：{e}")
         return None
 
+
+# 将图像与文本描述进行匹配，返回最匹配的描述及其概率
+def match_image_to_text(text_descriptions, image_path):
+    
+    # 加载设备配置
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    # 加载模型和预处理函数
+    model, preprocess = clip.load("ViT-B/32", device=device, jit=False)
+
+    # 尝试加载自定义权重（可选）
+    try:
+        model.load_state_dict(torch.load("vit-b-32.pth", map_location=device))
+        print("成功加载自定义权重文件 'vit-b-32.pth'")
+    except Exception as e:
+        print(f"加载 'vit-b-32.pth' 失败: {e}，将使用默认预训练权重")
+
+    print(image_path)
+
+    # 加载和预处理图像
+    image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
+    
+    # 生成文本token并移动到设备
+    text_inputs = torch.cat([clip.tokenize(desc) for desc in text_descriptions]).to(device)
+    
+    # 计算特征相似度
+    with torch.no_grad():
+        image_features = model.encode_image(image)
+        text_features = model.encode_text(text_inputs)
+        similarity = (image_features @ text_features.T).softmax(dim=-1)
+        top_prob, top_idx = similarity[0].topk(1)
+    
+    return text_descriptions[top_idx.item()], top_prob.item()
+
+def generate_caption(image_path, condition_text="a photography of"):
+
+    processor = BlipProcessor.from_pretrained(r"F:\大三下学期\移动应用开发\图片字幕\model")
+    model = BlipForConditionalGeneration.from_pretrained(r"F:\大三下学期\移动应用开发\图片字幕\model")
+
+    try:
+        # 验证文件存在性
+        if not os.path.exists(image_path):
+            return f"错误：文件不存在 - {image_path}"
+            
+        # 加载并转换图像
+        raw_image = Image.open(image_path).convert('RGB')
+        
+        # 图像描述生成
+        inputs = processor(raw_image, condition_text, return_tensors="pt")
+        out = model.generate(**inputs)
+        return processor.decode(out[0], skip_special_tokens=True)
+        
+    except (IOError, OSError) as e:
+        return f"图像处理失败: {str(e)}"
+    except Exception as e:
+        return f"未知错误: {str(e)}"
+
 def callback(ch, method, properties, body):
     try:
         message = json.loads(body.decode('utf-8'))
         file_path = message.get("file_path")
         operation = message.get("operation")
-        reply_to = properties.reply_to  # 获取回调队列名称
-
+        reply_to = properties.reply_to
         print(f"\n收到处理请求：{message}")
 
         # 执行对应操作
         if operation == "extract_pdf_text":
             result_path = extract_pdf_text(file_path)
+            response = {
+                "status": "success" if result_path else "failure",
+                "result": result_path or "无输出",
+                "file_path": file_path
+            }
         elif operation == "OCR":
             result_path = OCR(file_path)
+            response = {
+                "status": "success" if result_path else "failure",
+                "result": result_path or "无输出",
+                "file_path": file_path
+            }
         elif operation == "convert_word_to_pdf":
             result_path = convert_word_to_pdf(file_path)
+            response = {
+                "status": "success" if result_path else "failure",
+                "result": result_path or "无输出",
+                "file_path": file_path
+            }
         elif operation == "pdf_to_word":
             result_path = pdf_to_word(file_path)
+            response = {
+                "status": "success" if result_path else "failure",
+                "result": result_path or "无输出",
+                "file_path": file_path
+            }
         elif operation == "is_rich_text":
-            result_path = is_rich_text(file_path)
+            result = is_rich_text(file_path)
+            response = {
+                "status": "success" if result else "failure",
+                "result": result or "无输出",
+            }
+        elif operation == "get_photo_tag":
+            text_descriptions = message.get("text_descriptions")
+            result = match_image_to_text(text_descriptions, file_path)
+            response = {
+                "status": "success" if result else "failure",
+                "result": result[0],
+            }
+        elif operation == "generate_caption":
+            result = generate_caption(file_path)
+            response = {
+                "status": "success" if result else "failure",
+                "result": result or "无输出",
+            }
         else:
             print(f"不支持的操作类型：{operation}")
-            result_path = None
+            response = {
+                "status": "failure",
+                "result": "不支持的操作类型"
+            }
 
-        # 构造响应结果
-        response = {
-            "status": "success" if result_path else "failure",
-            "result": result_path or "无输出",
-            "operation": operation,
-            "file_path": file_path
-        }
-
-        if operation == "is_rich_text":
-            if result_path == None:
-                response['status'] = "failure"
-            else:
-                response['status'] = "success"
-            response['result'] = "True" if result_path else "False"
-
-        # 记录处理日志
-        with open("processing_log.txt", "a", encoding='utf-8') as log_file:
-            status = "成功" if result_path else "失败"
-            log_entry = f"{operation} | {file_path} | {status} | {result_path or '无输出'}\n"
-            log_file.write(log_entry)
+        # # 记录处理日志
+        # with open("processing_log.txt", "a", encoding='utf-8') as log_file:
+        #     status = "成功" if result else "失败"
+        #     log_entry = f"{operation} | {file_path} | {status} | {result or '无输出'}\n"
+        #     log_file.write(log_entry)
 
         # 将结果发送到回调队列
         if reply_to:

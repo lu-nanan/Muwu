@@ -9,8 +9,8 @@ import java.sql.Timestamp;
 @Mapper
 public interface FileMapper {
 
-    @Insert("INSERT INTO files (user_id, filename, file_path, file_type, upload_time, size) VALUES (#{userId}, #{filename}, #{filePath}, #{fileType}, #{uploadTime}, #{size})")
-    int insertFile(Integer userId, String filename, String filePath, String fileType, Timestamp uploadTime, Long size);
+    @Insert("INSERT INTO files (user_id, filename, file_path, file_type, upload_time, size, tag, description) VALUES (#{userId}, #{filename}, #{filePath}, #{fileType}, #{uploadTime}, #{size}, #{tag}, #{description})")
+    int insertFile(Integer userId, String filename, String filePath, String fileType, Timestamp uploadTime, Long size, String tag, String description);
 
 }
 

@@ -51,14 +51,13 @@ public class MessageQueueHelper {
 
     /**
      * 发送消息并等待结果
-     * @param filePath 文件路径
-     * @param operation 操作类型
+     * @param message 文件处理请求
      * @return Python处理后的结果（已解析为Map）
      * @throws IOException
      * @throws TimeoutException
      * @throws InterruptedException
      */
-    public static Map<String, Object> sendMessageAndGetResult(String filePath, String operation)
+    public static Map<String, Object> sendMessageAndGetResult(HashMap<String, Object> message)
             throws IOException, TimeoutException, InterruptedException {
 
         if (connection == null || !connection.isOpen() ||
@@ -73,11 +72,6 @@ public class MessageQueueHelper {
         AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
                 .replyTo(callbackQueue)
                 .build();
-
-        // 构造消息体
-        Map<String, Object> message = new HashMap<>();
-        message.put("file_path", filePath);
-        message.put("operation", operation);
 
         String jsonMessage = toJson(message);
 
@@ -168,8 +162,11 @@ public class MessageQueueHelper {
             // 示例：发送文件处理请求
             String filePath = "F:/大三下学期/移动应用开发/仓库/Muwu/image.png";  // 替换为实际文件路径
             String operation = "OCR";
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("filePath", filePath);
+            message.put("operation", operation);
 
-            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(filePath, operation);
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
 
             if (result != null) {
                 String status = (String) result.get("status");

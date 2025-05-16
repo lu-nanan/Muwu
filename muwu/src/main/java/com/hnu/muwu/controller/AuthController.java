@@ -1,11 +1,9 @@
 package com.hnu.muwu.controller;
 
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import com.hnu.muwu.DTO.LoginRequest;
 import com.hnu.muwu.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

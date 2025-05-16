@@ -1,163 +1,340 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="zh-CN">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>文件上传测试页</title>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;-->
+<!--            max-width: 800px;-->
+<!--            margin: 2rem auto;-->
+<!--            padding: 0 1rem;-->
+<!--        }-->
+
+<!--        .upload-container {-->
+<!--            border: 2px dashed #ccc;-->
+<!--            border-radius: 8px;-->
+<!--            padding: 2rem;-->
+<!--            text-align: center;-->
+<!--            background-color: #f9f9f9;-->
+<!--        }-->
+
+<!--        #fileInput {-->
+<!--            display: none;-->
+<!--        }-->
+
+<!--        .custom-file-upload {-->
+<!--            border: 1px solid #4CAF50;-->
+<!--            color: #4CAF50;-->
+<!--            padding: 0.8rem 1.5rem;-->
+<!--            border-radius: 4px;-->
+<!--            cursor: pointer;-->
+<!--            transition: all 0.3s;-->
+<!--            display: inline-block;-->
+<!--            margin-bottom: 1rem;-->
+<!--        }-->
+
+<!--        .custom-file-upload:hover {-->
+<!--            background-color: #4CAF50;-->
+<!--            color: white;-->
+<!--        }-->
+
+<!--        #uploadBtn {-->
+<!--            background-color: #4CAF50;-->
+<!--            color: white;-->
+<!--            border: none;-->
+<!--            padding: 1rem 2rem;-->
+<!--            border-radius: 4px;-->
+<!--            cursor: pointer;-->
+<!--            font-size: 1rem;-->
+<!--            transition: opacity 0.3s;-->
+<!--        }-->
+
+<!--        #uploadBtn:disabled {-->
+<!--            background-color: #cccccc;-->
+<!--            cursor: not-allowed;-->
+<!--            opacity: 0.7;-->
+<!--        }-->
+
+<!--        #status {-->
+<!--            margin-top: 1.5rem;-->
+<!--            padding: 1rem;-->
+<!--            border-radius: 4px;-->
+<!--            display: none;-->
+<!--        }-->
+
+<!--        .success {-->
+<!--            background-color: #dff0d8;-->
+<!--            color: #3c763d;-->
+<!--            border: 1px solid #d6e9c6;-->
+<!--        }-->
+
+<!--        .error {-->
+<!--            background-color: #f2dede;-->
+<!--            color: #a94442;-->
+<!--            border: 1px solid #ebccd1;-->
+<!--        }-->
+
+<!--        #fileName {-->
+<!--            margin: 1rem 0;-->
+<!--            color: #666;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class="upload-container">-->
+<!--    <h2>文件上传测试</h2>-->
+
+<!--    &lt;!&ndash; 文件选择区域 &ndash;&gt;-->
+<!--    <label class="custom-file-upload">-->
+<!--        <input type="file" id="fileInput" />-->
+<!--        选择文件-->
+<!--    </label>-->
+<!--    <div id="fileName"></div>-->
+
+<!--    &lt;!&ndash; 上传按钮 &ndash;&gt;-->
+<!--    <button id="uploadBtn" onclick="uploadFile()" disabled>开始上传</button>-->
+
+<!--    &lt;!&ndash; 状态显示 &ndash;&gt;-->
+<!--    <div id="status"></div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    // 文件选择监听-->
+<!--    document.getElementById('fileInput').addEventListener('change', function(e) {-->
+<!--        const file = e.target.files[0];-->
+<!--        if (file) {-->
+<!--            document.getElementById('fileName').textContent = `已选择文件：${file.name}`;-->
+<!--            document.getElementById('uploadBtn').disabled = false;-->
+<!--        }-->
+<!--    });-->
+
+<!--    // 文件上传函数-->
+<!--    async function uploadFile() {-->
+<!--        const fileInput = document.getElementById('fileInput');-->
+<!--        const statusDiv = document.getElementById('status');-->
+<!--        const uploadBtn = document.getElementById('uploadBtn');-->
+
+<!--        if (!fileInput.files.length) {-->
+<!--            showStatus('请先选择文件', 'error');-->
+<!--            return;-->
+<!--        }-->
+
+<!--        const file = fileInput.files[0];-->
+<!--        const formData = new FormData();-->
+<!--        formData.append('file', file);-->
+
+<!--        try {-->
+<!--            uploadBtn.disabled = true;-->
+<!--            uploadBtn.textContent = '上传中...';-->
+<!--            statusDiv.style.display = 'none';-->
+
+<!--            // 发送请求到指定端口-->
+<!--            const response = await fetch('http://localhost:8082/file/upload', {-->
+<!--                method: 'POST',-->
+<!--                body: formData-->
+<!--            });-->
+
+<!--            // 修改响应处理方式-->
+<!--            const result = await response.text(); // 改为text()解析-->
+
+<!--            if (response.ok) {-->
+<!--                showStatus(`上传成功：${result}`, 'success');-->
+<!--            } else {-->
+<!--                showStatus(`上传失败：${result}`, 'error'); // 直接显示错误信息-->
+<!--            }-->
+<!--        } catch (error) {-->
+<!--            showStatus(`请求失败：${error.message}`, 'error');-->
+<!--        } finally {-->
+<!--            uploadBtn.disabled = false;-->
+<!--            uploadBtn.textContent = '开始上传';-->
+<!--        }-->
+<!--    }-->
+
+<!--    // 显示状态信息-->
+<!--    function showStatus(message, type) {-->
+<!--        const statusDiv = document.getElementById('status');-->
+<!--        statusDiv.textContent = message;-->
+<!--        statusDiv.className = type;-->
+<!--        statusDiv.style.display = 'block';-->
+<!--    }-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>文件上传测试页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传与处理测试</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+            margin: 0 auto;
+            padding: 20px;
         }
-
-        .upload-container {
-            border: 2px dashed #ccc;
+        .container {
+            background-color: #f5f5f5;
             border-radius: 8px;
-            padding: 2rem;
-            text-align: center;
-            background-color: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-
-        #fileInput {
-            display: none;
+        h1, h2 {
+            color: #333;
         }
-
-        .custom-file-upload {
-            border: 1px solid #4CAF50;
-            color: #4CAF50;
-            padding: 0.8rem 1.5rem;
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
             border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-block;
-            margin-bottom: 1rem;
+            border: 1px solid #ddd;
         }
-
-        .custom-file-upload:hover {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        #uploadBtn {
+        button {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 1rem 2rem;
-            border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: opacity 0.3s;
+            padding: 10px 15px;
         }
-
-        #uploadBtn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.7;
+        button:hover {
+            background-color: #45a049;
         }
-
-        #status {
-            margin-top: 1.5rem;
-            padding: 1rem;
+        #uploadResult, #checkResult {
+            margin-top: 20px;
+            padding: 10px;
             border-radius: 4px;
-            display: none;
+            background-color: #f0f0f0;
+            white-space: pre-wrap;
         }
-
         .success {
-            background-color: #dff0d8;
-            color: #3c763d;
-            border: 1px solid #d6e9c6;
+            border-left: 4px solid #4CAF50;
         }
-
         .error {
-            background-color: #f2dede;
-            color: #a94442;
-            border: 1px solid #ebccd1;
-        }
-
-        #fileName {
-            margin: 1rem 0;
-            color: #666;
+            border-left: 4px solid #f44336;
         }
     </style>
 </head>
 <body>
-<div class="upload-container">
-    <h2>文件上传测试</h2>
+<h1>文件上传与处理测试</h1>
 
-    <!-- 文件选择区域 -->
-    <label class="custom-file-upload">
-        <input type="file" id="fileInput" />
-        选择文件
-    </label>
-    <div id="fileName"></div>
+<div class="container">
+    <h2>第一步：文件上传</h2>
+    <form id="uploadForm">
+        <div class="form-group">
+            <label for="userId">用户ID：</label>
+            <input type="number" id="userId" name="userId" required>
+        </div>
+        <div class="form-group">
+            <label for="file">选择文件：</label>
+            <input type="file" id="file" name="file" required>
+        </div>
+        <button type="submit">上传文件</button>
+    </form>
+    <div id="uploadResult"></div>
+</div>
 
-    <!-- 上传按钮 -->
-    <button id="uploadBtn" onclick="uploadFile()" disabled>开始上传</button>
-
-    <!-- 状态显示 -->
-    <div id="status"></div>
+<div class="container">
+    <h2>第二步：确认处理</h2>
+    <form id="checkForm">
+        <div class="form-group">
+            <label for="checkUserId">用户ID：</label>
+            <input type="number" id="checkUserId" name="userId" required>
+        </div>
+        <div class="form-group">
+            <label for="tag">标签：</label>
+            <input type="text" id="tag" name="tag" required>
+        </div>
+        <div class="form-group">
+            <label for="path">文件路径：</label>
+            <input type="text" id="path" name="path" required>
+        </div>
+        <button type="submit">确认处理</button>
+    </form>
+    <div id="checkResult"></div>
 </div>
 
 <script>
-    // 文件选择监听
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            document.getElementById('fileName').textContent = `已选择文件：${file.name}`;
-            document.getElementById('uploadBtn').disabled = false;
-        }
-    });
+    // 上传表单提交
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-    // 文件上传函数
-    async function uploadFile() {
-        const fileInput = document.getElementById('fileInput');
-        const statusDiv = document.getElementById('status');
-        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadResult = document.getElementById('uploadResult');
+        uploadResult.innerHTML = '处理中...';
+        uploadResult.className = '';
 
-        if (!fileInput.files.length) {
-            showStatus('请先选择文件', 'error');
-            return;
-        }
-
-        const file = fileInput.files[0];
         const formData = new FormData();
-        formData.append('file', file);
+        const userId = document.getElementById('userId').value;
+        const fileInput = document.getElementById('file');
+
+        formData.append('userId', userId);
+        formData.append('file', fileInput.files[0]);
 
         try {
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = '上传中...';
-            statusDiv.style.display = 'none';
-
-            // 发送请求到指定端口
             const response = await fetch('http://localhost:8082/file/upload', {
                 method: 'POST',
                 body: formData
             });
 
-            // 修改响应处理方式
-            const result = await response.text(); // 改为text()解析
+            const data = await response.json();
 
             if (response.ok) {
-                showStatus(`上传成功：${result}`, 'success');
+                uploadResult.className = 'success';
+                // 如果上传成功，自动填充第二步的表单
+                document.getElementById('checkUserId').value = userId;
+                document.getElementById('tag').value = data.tag || '';
+                document.getElementById('path').value = data.filePath || '';
             } else {
-                showStatus(`上传失败：${result}`, 'error'); // 直接显示错误信息
+                uploadResult.className = 'error';
             }
-        } catch (error) {
-            showStatus(`请求失败：${error.message}`, 'error');
-        } finally {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = '开始上传';
-        }
-    }
 
-    // 显示状态信息
-    function showStatus(message, type) {
-        const statusDiv = document.getElementById('status');
-        statusDiv.textContent = message;
-        statusDiv.className = type;
-        statusDiv.style.display = 'block';
-    }
+            uploadResult.innerHTML = JSON.stringify(data, null, 2);
+        } catch (error) {
+            uploadResult.className = 'error';
+            uploadResult.innerHTML = '请求失败: ' + error.message;
+        }
+    });
+
+    // 检查表单提交
+    document.getElementById('checkForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const checkResult = document.getElementById('checkResult');
+        checkResult.innerHTML = '处理中...';
+        checkResult.className = '';
+
+        const formData = new FormData();
+        formData.append('userId', document.getElementById('checkUserId').value);
+        formData.append('tag', document.getElementById('tag').value);
+        formData.append('path', document.getElementById('path').value);
+
+        try {
+            const response = await fetch('http://localhost:8082/file/check', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                checkResult.className = 'success';
+            } else {
+                checkResult.className = 'error';
+            }
+
+            checkResult.innerHTML = JSON.stringify(data, null, 2);
+        } catch (error) {
+            checkResult.className = 'error';
+            checkResult.innerHTML = '请求失败: ' + error.message;
+        }
+    });
 </script>
 </body>
 </html>

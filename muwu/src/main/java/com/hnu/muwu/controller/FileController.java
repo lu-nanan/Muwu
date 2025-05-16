@@ -1,15 +1,23 @@
 package com.hnu.muwu.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.hnu.muwu.bean.FinalFile;
 import com.hnu.muwu.bean.MyFile;
 import com.hnu.muwu.config.GlobalVariables;
 import com.hnu.muwu.service.FileServiceImpl;
+import com.hnu.muwu.service.PhotoTagService;
+import com.hnu.muwu.utiles.FileHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -23,72 +31,100 @@ public class FileController {
     @Autowired
     private FileServiceImpl fileService;
 
+    @Autowired
+    private PhotoTagService photoTagService;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
     /**
      * 文件上传解析接口
      * @param file 前端上传的文件
      * @return 上传处理结果
      */
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
-        int userId = 100000;
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("userId") Integer userId) {
+        //Integer userId = 100000;
 
         // 检查文件是否为空
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("上传文件不能为空");
         }
 
-        // 获取文件信息
+        // 获取文件基本信息
         String originalFilename = file.getOriginalFilename();
         String fileType = getFileExtension(originalFilename);
         long fileSize = file.getSize();
 
-        // 创建目录
-        String dirPath = GlobalVariables.rootPath + File.separator + userId;
-        File dir = new File(dirPath);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        // 构建文件路径
+        // 定义文件存储路径
+        String dirPath = GlobalVariables.rootPath + File.separator + "temp";
         String filePath = dirPath + File.separator + originalFilename;
         File destFile = new File(filePath);
 
         try {
-            // 保存文件到目标路径
             file.transferTo(destFile);
-
-            // 创建文件记录并保存到数据库
             MyFile myFile = new MyFile(userId, originalFilename, filePath, fileType, Timestamp.valueOf(LocalDateTime.now()), fileSize);
 
-            System.out.println(myFile);
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(myFile);
 
-            // 保存到数据库
-            int result = fileService.insertFile(myFile);
+            System.out.println(json);
 
-            if (result > 0) {
-                Map<String, Object> response = new HashMap<>();
-                if (fileType.equals("png") || fileType.equals("jpg") || fileType.equals("jpeg")) {
-                    Boolean flag = fileService.fileOperatorExtend(filePath, fileType);
-                    if (flag) {
-                        response.put("isRichText", true);
-                    } else {
-                        response.put("isRichText", false);
-                    }
-                }
-                response.put("message", "文件上传成功");
-                response.put("filename", originalFilename);
-                response.put("filePath", filePath);
-                return ResponseEntity.ok(response);
-            } else {
-                // 如果数据库插入失败，删除已上传的文件
-                destFile.delete();
-                return ResponseEntity.internalServerError().body("文件信息保存到数据库失败");
-            }
+            redisTemplate.opsForValue().set(userId.toString(), json);
+
+            String tag = fileService.getTag(filePath, userId);
+
+            String text = fileService.getText(filePath);
+
+            String sPath = fileService.getPath(userId, tag, myFile, text);
+
+            // 构造成功响应
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "文件处理成功");
+            response.put("filename", myFile.getFilename());
+            response.put("filePath", sPath);
+            response.put("tag", tag);
+            return ResponseEntity.ok(response);
+
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("文件上传失败: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("文件处理失败: " + e.getMessage());
         }
     }
+
+    @PostMapping("/check")
+    public ResponseEntity<?> checkFile(@RequestParam("userId") int userId,  @RequestParam("tag") String tag, @RequestParam("path") String path) {
+
+        MyFile myFile = fileService.getAndDeleteMyFile(userId);
+        System.out.println(myFile);
+
+        if (myFile == null) {
+            return ResponseEntity.badRequest().body("数据解析失败");
+        }
+
+        String description = fileService.getText(myFile.getFilePath());
+
+        FinalFile finalFile = new FinalFile(myFile, tag, description);
+
+        finalFile.setFilePath(path);
+
+        Path destinationPath = Paths.get(GlobalVariables.rootPath, finalFile.getFilePath());
+        String destinationPathStr = destinationPath.toString();
+
+        System.out.println(destinationPathStr);
+
+        if (fileService.insertFile(finalFile) == 1 && FileHelper.moveFile(myFile.getFilePath(), destinationPathStr)) {
+            String suggest = fileService.fileOperatorExtend(destinationPathStr, finalFile.getFileType());
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "文件处理成功");
+            response.put("suggest", suggest);
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body("文件信息添加到数据库失败或提取建议失败");
+        }
+    }
+
 
     /**
      * 获取文件扩展名

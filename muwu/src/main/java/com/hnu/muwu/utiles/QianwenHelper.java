@@ -49,14 +49,8 @@ public class QianwenHelper {
 
     public static void main(String[] args) {
         try {
-//            // 示例用法（每次调用独立）
-//            String response1 = processMessage("你好");
-//            System.out.println("Qwen: " + response1);
-
-//            String response2 = processMessage("如何制作西红柿炒蛋");
-//            System.out.println("Qwen: " + response2);
-
-              System.out.println("111111");
+            String response1 = processMessage("你好");
+            System.out.println("Qwen: " + response1);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
