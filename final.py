@@ -91,7 +91,15 @@ def OCR(image_path):
             f.write(text_content)
         
         print(f"OCR结果已保存到：{output_path}")
-        return output_path
+
+        results = {
+            "text": text_content,
+            "output_path": output_path
+        }
+
+        print(results)
+
+        return results
     
     except Exception as e:
         print(f"OCR处理失败：{e}")
@@ -226,11 +234,11 @@ def callback(ch, method, properties, body):
                 "file_path": file_path
             }
         elif operation == "OCR":
-            result_path = OCR(file_path)
+            results = OCR(file_path)
             response = {
-                "status": "success" if result_path else "failure",
-                "result": result_path or "无输出",
-                "file_path": file_path
+                "status": "success" if results else "failure",
+                "result": results.get("text") if results else "无输出",
+                "file_path": results.get("output_path") if results else "无输出"
             }
         elif operation == "convert_word_to_pdf":
             result_path = convert_word_to_pdf(file_path)

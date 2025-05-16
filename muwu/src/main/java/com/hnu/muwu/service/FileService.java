@@ -16,4 +16,6 @@ public interface FileService {
     String getText (String filePath);
 
     String getPath (Integer userId, String tag , MyFile file, String text);
+
+    String getFileDescription(String filePath);
 }

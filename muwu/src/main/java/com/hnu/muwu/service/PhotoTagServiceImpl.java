@@ -16,4 +16,9 @@ public class PhotoTagServiceImpl implements PhotoTagService{
     public List<String> getTagsByUserId(Integer userId) {
         return photoTagMapper.getTagsByUserId(userId);
     }
+
+    @Override
+    public String getTagByName(Integer userId, String name) {
+        return photoTagMapper.getTagByName(userId, name);
+    }
 }

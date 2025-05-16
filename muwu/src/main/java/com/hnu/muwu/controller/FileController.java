@@ -117,12 +117,36 @@ public class FileController {
         if (fileService.insertFile(finalFile) == 1 && FileHelper.moveFile(myFile.getFilePath(), destinationPathStr)) {
             String suggest = fileService.fileOperatorExtend(destinationPathStr, finalFile.getFileType());
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "文件处理成功");
             response.put("suggest", suggest);
+            response.put("message", "文件处理成功");
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body("文件信息添加到数据库失败或提取建议失败");
         }
+    }
+
+    @GetMapping("/suggest")
+    public ResponseEntity<?> suggestCheck (@RequestParam("accept") Boolean accept, @RequestParam("filePath") String path, @RequestParam("userId") int userId) {
+        if (accept) {
+            Path destinationPath = Paths.get(GlobalVariables.rootPath, path);
+            String destinationPathStr = destinationPath.toString();
+            String suggest = redisTemplate.opsForValue().get(destinationPathStr);
+            System.out.println(suggest);
+            assert suggest != null;
+            if (suggest.equals("OCR")) {
+                Map<String, Object> re = fileService.photoOCR(destinationPathStr, userId);
+                if (re != null) {
+                    re.put("message", "OCR处理成功");
+                    return ResponseEntity.ok(re);
+                } else {
+                    return ResponseEntity.badRequest().body("OCR处理失败");
+                }
+            }
+        } else {
+            redisTemplate.delete(path);
+            return ResponseEntity.badRequest().body("缓存建议删除成功");
+        }
+        return null;
     }
 
 

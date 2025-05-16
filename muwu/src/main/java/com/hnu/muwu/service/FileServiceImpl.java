@@ -1,12 +1,12 @@
 package com.hnu.muwu.service;
 
+import com.alibaba.dashscope.exception.InputRequiredException;
+import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.hnu.muwu.bean.FinalFile;
 import com.hnu.muwu.bean.MyFile;
 import com.hnu.muwu.config.GlobalVariables;
 import com.hnu.muwu.mapper.FileMapper;
-import com.hnu.muwu.utiles.FileTreeHelper;
-import com.hnu.muwu.utiles.MessageQueueHelper;
-import com.hnu.muwu.utiles.QianwenHelper;
+import com.hnu.muwu.utiles.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +30,9 @@ public class FileServiceImpl implements FileService {
     private PhotoTagService photoTagService;
 
     @Autowired
+    private FileTagService fileTagService;
+
+    @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
     @Override
@@ -47,7 +50,7 @@ public class FileServiceImpl implements FileService {
         try {
             Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
             if (result != null) {
-                return (String) result.get("result");
+                return photoTagService.getTagByName(userId, (String) result.get("result"));
             }
         } catch (IOException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -63,7 +66,7 @@ public class FileServiceImpl implements FileService {
         try {
             Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
             if (result != null) {
-                return (String) result.get("result");
+                return TranslateHelper.translate((String) result.get("result"));
             }
         } catch (IOException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -124,6 +127,7 @@ public class FileServiceImpl implements FileService {
                 Boolean re = (Boolean) result.get("result");
                 if (status.equals("success")) {
                     if (re) {
+                        redisTemplate.opsForValue().set(filePath, "OCR");
                         return "检测到图片为富文本图片，是否提取图片文本";
                     } else {
                         return null;
@@ -139,5 +143,46 @@ public class FileServiceImpl implements FileService {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public Map<String, Object> photoOCR (String filePath,  Integer userId) {
+        try {
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("operation", "OCR");
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+            if (result != null) {
+                String status = (String) result.get("status");
+                if (status.equals("success")) {
+                    Map<String, Object> re = new HashMap<>();
+                    re.put("text", (String) result.get("result"));
+                    re.put("path", (String) result.get("file_path"));
+                    System.out.println("读取的文件路径" + result.get("file_path"));
+                    MyFile OCRResult = FileHelper.createMyFileFromPath((String) result.get("file_path"), userId);
+                    String tag = fileTagService.getTag(userId, (String) result.get("file_path"));
+                    String description = this.getFileDescription((String) result.get("file_path"));
+                    assert OCRResult != null;
+                    this.insertFile(new FinalFile(OCRResult, tag, description));
+                    return re;
+                } else {
+                    return null;
+                }
+            }
+        } catch (IOException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    @Override
+    public String getFileDescription(String filePath) {
+        try {
+            String content = FileHelper.readFileContent(filePath);
+            String question = "请根据下面的文件内容，生成一个50字左右的概述，回答应只包含概述内容，不可包含任何其他内容\n" + content;
+            System.out.println(question);
+            return QianwenHelper.processMessage(question);
+        } catch (NoApiKeyException | InputRequiredException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

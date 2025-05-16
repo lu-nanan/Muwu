@@ -2,9 +2,8 @@ package com.hnu.muwu.service;
 
 import java.util.List;
 
-public interface PhotoTagService {
-
+public interface FileTagService {
     List<String> getTagsByUserId(Integer userId);
 
-    String getTagByName(Integer userId, String name);
+    String getTag(Integer userId, String filePath);
 }
