@@ -41,6 +41,12 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public FinalFile getFileByName (String name, Integer userId) {
+        List<FinalFile> files = fileMapper.getFileByUserIdAndFilename(userId, name);
+        return files.getFirst();
+    }
+
+    @Override
     public String getTag (String filePath, Integer userId) {
         List<String> tags = photoTagService.getTagsByUserId(userId);
         HashMap<String, Object> message = new HashMap<>();

@@ -20,7 +20,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin(origins = "*")
@@ -93,6 +95,14 @@ public class FileController {
         }
     }
 
+
+    /**
+     * 文件处理接口
+     * @param userId 用户id
+     * @param tag 文件标签
+     * @param path 文件路径
+     * @return 处理结果
+     */
     @PostMapping("/check")
     public ResponseEntity<?> checkFile(@RequestParam("userId") int userId,  @RequestParam("tag") String tag, @RequestParam("path") String path) {
 
@@ -125,6 +135,17 @@ public class FileController {
         }
     }
 
+
+    /**
+     *
+     * @param accept 是否接受建议
+     *    true:接受建议并删除缓存
+     *    false:拒绝建议并删除缓存
+     * @param path 文件路径
+     * @Param userId 用户id
+     * @return 处理结果
+     *
+     * */
     @GetMapping("/suggest")
     public ResponseEntity<?> suggestCheck (@RequestParam("accept") Boolean accept, @RequestParam("filePath") String path, @RequestParam("userId") int userId) {
         if (accept) {
@@ -147,6 +168,56 @@ public class FileController {
             return ResponseEntity.badRequest().body("缓存建议删除成功");
         }
         return null;
+    }
+
+
+    /**
+     * 获取文件夹内容
+     * @param path 相对路径
+     * @param userId 用户ID
+     * @return 文件夹内容列表
+     */
+    @GetMapping("/list")
+    public ResponseEntity<?> listFilesAndFolders(@RequestParam("path") String path, @RequestParam("userId") int userId) {
+
+        String fullPath = GlobalVariables.rootPath + File.separator + path;
+        File directory = new File(fullPath);
+
+        System.out.println(fullPath);
+
+        try {
+            if (!directory.exists() || !directory.isDirectory()) {
+                return ResponseEntity.badRequest().body("指定的路径不存在或不是一个目录");
+            }
+
+            File[] filesAndDirs = directory.listFiles();
+            if (filesAndDirs == null) {
+                return ResponseEntity.badRequest().body("无法读取目录内容");
+            }
+
+            List<Map<String, Object>> resultList = new ArrayList<>();
+
+            for (File fileOrDir : filesAndDirs) {
+                Map<String, Object> item = new HashMap<>();
+                if (fileOrDir.isDirectory()) {
+                    item.put("type", "directory");
+                    item.put("name", fileOrDir.getName());
+                } else {
+                    item.put("type", "file");
+                    item.put("name", fileOrDir.getName());
+                    System.out.println(fileOrDir.getName());
+                    FinalFile myFile = fileService.getFileByName(fileOrDir.getName(), userId);
+                    item.put("uploadTime", myFile.getUploadTime());
+                    item.put("size", myFile.getSize());
+                    item.put("tag", myFile.getTag());
+                }
+                resultList.add(item);
+            }
+            // 返回成功响应
+            return ResponseEntity.ok(resultList);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

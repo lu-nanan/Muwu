@@ -9,6 +9,8 @@ public interface FileService {
 
     MyFile getAndDeleteMyFile(Integer userId);
 
+    FinalFile getFileByName(String name, Integer userId);
+
     String fileOperatorExtend(String filePath, String type);
 
     String getTag (String filePath, Integer userId);
@@ -18,4 +20,5 @@ public interface FileService {
     String getPath (Integer userId, String tag , MyFile file, String text);
 
     String getFileDescription(String filePath);
+
 }
