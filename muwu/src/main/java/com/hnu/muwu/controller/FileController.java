@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hnu.muwu.bean.FinalFile;
 import com.hnu.muwu.bean.MyFile;
+import com.hnu.muwu.bean.ShareFileEntity;
 import com.hnu.muwu.config.GlobalVariables;
 import com.hnu.muwu.service.FileServiceImpl;
 import com.hnu.muwu.service.PhotoTagService;
+import com.hnu.muwu.service.ShareFileService;
+import com.hnu.muwu.service.ShareFileServiceImpl;
 import com.hnu.muwu.utiles.FileHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,8 +19,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -35,6 +40,8 @@ public class FileController {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+    @Autowired
+    private ShareFileServiceImpl shareFileService;
 
     /**
      * 文件上传解析接口
@@ -213,50 +220,6 @@ public class FileController {
             return ResponseEntity.ok(resultList);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 文件搜索接口
-     * @param userId 用户id
-     * @param keyword 搜索关键词
-     * @return 搜索结果列表
-     */
-    @GetMapping("/search")
-    public ResponseEntity<?> searchFiles(@RequestParam("userId") int userId, @RequestParam("keyword") String keyword) {
-        try {
-            if (keyword == null || keyword.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("搜索关键词不能为空");
-            }
-
-            String userRootPath = GlobalVariables.rootPath;
-
-            String searchKeyword = "%" + keyword + "%";
-
-            List<FinalFile> foundFiles = fileService.searchFilesByNameLike(searchKeyword, userId);
-
-            if (foundFiles == null || foundFiles.isEmpty()) {
-                foundFiles = fileService.searchFilesByQianwen(keyword, userId);
-                if (foundFiles == null || foundFiles.isEmpty()) {
-                    return ResponseEntity.badRequest().body("没有找到与关键词匹配的文件");
-                }
-            }
-
-            List<Map<String, Object>> resultList = new ArrayList<>();
-            for (FinalFile file : foundFiles) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("type", "file");
-                item.put("name", file.getFilename());
-                item.put("uploadTime", file.getUploadTime());
-                item.put("size", file.getSize());
-                item.put("tag", file.getTag());
-                resultList.add(item);
-            }
-            return ResponseEntity.ok(resultList);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("搜索文件失败: " + e.getMessage());
         }
     }
 
