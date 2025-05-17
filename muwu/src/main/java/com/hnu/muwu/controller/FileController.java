@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hnu.muwu.bean.FinalFile;
 import com.hnu.muwu.bean.MyFile;
+import com.hnu.muwu.bean.ShareFileEntity;
 import com.hnu.muwu.config.GlobalVariables;
 import com.hnu.muwu.service.FileServiceImpl;
 import com.hnu.muwu.service.PhotoTagService;
+import com.hnu.muwu.service.ShareFileService;
+import com.hnu.muwu.service.ShareFileServiceImpl;
 import com.hnu.muwu.utiles.FileHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,14 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -38,6 +40,8 @@ public class FileController {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+    @Autowired
+    private ShareFileServiceImpl shareFileService;
 
     /**
      * 文件上传解析接口
@@ -219,7 +223,61 @@ public class FileController {
             throw new RuntimeException(e);
         }
     }
+    @GetMapping("/share")
+    public ResponseEntity<?> shareFiles(@RequestParam("path") String path, @RequestParam("userId") int userId) {
+        String fullPath = GlobalVariables.rootPath + File.separator + path;
+        File file = new File(fullPath);
+        try {
+            // 检查文件是否存在
+            if (!file.exists()) {
+                return ResponseEntity.badRequest().body("文件不存在");
+            }
+            // 检查是否是文件
+            if (!file.isFile()) {
+                return ResponseEntity.badRequest().body("指定路径不是一个文件");
+            }
+            // 检查文件所有权
+            FinalFile myFile = fileService.getFileByName(file.getName(), userId);
+            if (myFile == null) {
+                return ResponseEntity.badRequest().body("用户无权操作该文件");
+            }
+            // 创建分享目录（示例路径：rootPath/share/userId/）
+            String shareBasePath = GlobalVariables.rootPath +  File.separator + userId;
+            File shareDir = new File(shareBasePath);
+            if (!shareDir.exists()) {
+                shareDir.mkdirs();
+            }
 
+            // 生成唯一文件名防止冲突
+            String uniqueFileName = UUID.randomUUID() + "_" + file.getName();
+            Path targetPath = Paths.get(shareDir.getAbsolutePath(), uniqueFileName);
+
+            // 执行文件拷贝
+            Files.copy(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            String token = UUID.randomUUID().toString();
+
+            // 保存分享记录
+            ShareFileEntity record = new ShareFileEntity();
+            record.setToken(token);
+            record.setUserId(userId);
+            record.setSharePath(targetPath.toString());
+            record.setFileName(file.getName());
+            record.setExpiresAt(LocalDateTime.now().plusDays(7));
+            if(shareFileService.saveShare(record)!=1){
+                return ResponseEntity.internalServerError().body("服务器出差了");
+            }
+
+            // 构造返回的相对路径（示例：share/{userId}/filename）
+            String returnPath = "share/" + userId + "/" + uniqueFileName;
+            return ResponseEntity.ok(Collections.singletonMap("sharePath", returnPath));
+
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("文件操作失败：" + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 获取文件扩展名
