@@ -20,10 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -173,8 +170,8 @@ public class FileController {
 
     /**
      * 获取文件夹内容
-     * @param path 相对路径
-     * @param userId 用户ID
+     * @param path 文件夹路径
+     * @param userId 用户id
      * @return 文件夹内容列表
      */
     @GetMapping("/list")
@@ -205,7 +202,6 @@ public class FileController {
                 } else {
                     item.put("type", "file");
                     item.put("name", fileOrDir.getName());
-                    System.out.println(fileOrDir.getName());
                     FinalFile myFile = fileService.getFileByName(fileOrDir.getName(), userId);
                     item.put("uploadTime", myFile.getUploadTime());
                     item.put("size", myFile.getSize());
@@ -217,6 +213,50 @@ public class FileController {
             return ResponseEntity.ok(resultList);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 文件搜索接口
+     * @param userId 用户id
+     * @param keyword 搜索关键词
+     * @return 搜索结果列表
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchFiles(@RequestParam("userId") int userId, @RequestParam("keyword") String keyword) {
+        try {
+            if (keyword == null || keyword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("搜索关键词不能为空");
+            }
+
+            String userRootPath = GlobalVariables.rootPath;
+
+            String searchKeyword = "%" + keyword + "%";
+
+            List<FinalFile> foundFiles = fileService.searchFilesByNameLike(searchKeyword, userId);
+
+            if (foundFiles == null || foundFiles.isEmpty()) {
+                foundFiles = fileService.searchFilesByQianwen(keyword, userId);
+                if (foundFiles == null || foundFiles.isEmpty()) {
+                    return ResponseEntity.badRequest().body("没有找到与关键词匹配的文件");
+                }
+            }
+
+            List<Map<String, Object>> resultList = new ArrayList<>();
+            for (FinalFile file : foundFiles) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("type", "file");
+                item.put("name", file.getFilename());
+                item.put("uploadTime", file.getUploadTime());
+                item.put("size", file.getSize());
+                item.put("tag", file.getTag());
+                resultList.add(item);
+            }
+            return ResponseEntity.ok(resultList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("搜索文件失败: " + e.getMessage());
         }
     }
 

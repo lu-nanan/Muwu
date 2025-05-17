@@ -15,10 +15,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 @Service("fileService")
 public class FileServiceImpl implements FileService {
@@ -37,13 +36,46 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public int insertFile(FinalFile file) {
-        return fileMapper.insertFile(file.getUserId(), file.getFilename(), file.getFilePath(), file.getFileType(), file.getUploadTime(), file.getSize(), file.getTag(), file.getDescription());
+        return fileMapper.insertFile(file.getUserId(), file.getFilename(), file.getFilePath(), file.getFileType(),
+                                                file.getUploadTime(), file.getSize(), file.getTag(), file.getDescription());
     }
 
     @Override
     public FinalFile getFileByName (String name, Integer userId) {
         List<FinalFile> files = fileMapper.getFileByUserIdAndFilename(userId, name);
         return files.getFirst();
+    }
+
+    @Override
+    public List<FinalFile> searchFilesByNameLike(String keyword, Integer userId) {
+       return fileMapper.getFileByKeywordAndUserId(keyword, userId);
+    }
+
+    @Override
+    public List<FinalFile> searchFilesByQianwen(String keyword, Integer userId) {
+        List<FinalFile> files = fileMapper.getAllFilesByUserId(userId);
+        String question = "请根据下面的疑问信息和用户的查找输入，给出可能符合条件的结果的文件名称，用英文逗号（,）分割多个文件名，回答形式如：file1,file2,file3。"
+                + "回答应只有如示例所示的文件名，不可包括其他任何内容，若没有符合条件的文件，请回答“没有满足条件的文件”\n" + keyword + "\n" + files.toString();
+
+        try {
+            String response = QianwenHelper.processMessage(question);
+
+            if (response == null || response.isEmpty() || response.equals("没有满足条件的文件")) {
+                return new ArrayList<>();
+            }
+
+            List<String> matchedFilenames = Arrays.asList(response.split(","))
+                    .stream()
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+
+            return files.stream()
+                    .filter(file -> matchedFilenames.contains(file.getFilename()))
+                    .collect(Collectors.toList());
+
+        } catch (NoApiKeyException | InputRequiredException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -88,7 +120,8 @@ public class FileServiceImpl implements FileService {
         message.put("text-descriptions", text);
         message.put("file-tree", fileTree);
         message.put("tag", tag);
-        String question = "请根据下面的文件信息，结合用户已有的文件结构和文件存放习惯，综合考虑用户习惯和查找检索方便等因素，直接给出此文件合适的存放路径(路径需包含文件名，从用户文件起始，如：100000/images/image.png),回答不要包含其他任何的内容" + message.toString();
+        String question = "请根据下面的文件信息，结合用户已有的文件结构和文件存放习惯，综合考虑用户习惯和查找检索方便等因素，"
+                    + "直接给出此文件合适的存放路径(路径需包含文件名，从用户文件起始，如：100000/images/image.png),回答不要包含其他任何的内容" + message.toString();
         try {
             return QianwenHelper.processMessage(question);
         } catch (Exception e) {

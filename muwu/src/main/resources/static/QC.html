@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .input-group {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .qr-container {
+            margin-top: 20px;
+        }
+        .qr-image {
+            max-width: 300px;
+            border: 1px solid #ddd;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .loading {
+            margin-top: 20px;
+        }
+        .file-info {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        .file-input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-input-label:hover {
+            background-color: #0b7dda;
+        }
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<h1>QR Code Generator</h1>
+
+<div class="container">
+    <div class="input-group">
+        <div class="file-input-container">
+            <label for="fileInput" class="file-input-label">Choose a file</label>
+            <input type="file" id="fileInput">
+            <div id="fileInfo" class="file-info">No file selected</div>
+        </div>
+        <button id="generateBtn">Generate QR Code</button>
+    </div>
+
+    <div class="options">
+        <div class="option-group">
+            <label for="errorLevel">Error Tolerance:</label>
+            <select id="errorLevel">
+                <option value="l">Low</option>
+                <option value="m">Medium</option>
+                <option value="q">Medium-High</option>
+                <option value="h">High</option>
+            </select>
+        </div>
+
+        <div class="option-group">
+            <label for="size">Size:</label>
+            <input type="number" id="size" value="250" min="100" max="1000">
+        </div>
+
+        <div class="option-group">
+            <label for="fgColor">Dot Color:</label>
+            <input type="color" id="fgColor" value="#000000">
+        </div>
+
+        <div class="option-group">
+            <label for="bgColor">Background Color:</label>
+            <input type="color" id="bgColor" value="#FFFFFF">
+        </div>
+
+        <div class="option-group">
+            <label for="gradient">Gradient:</label>
+            <select id="gradient">
+                <option value="f">No</option>
+                <option value="t">Yes</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">Generating QR code...</div>
+    <div id="error" class="error"></div>
+
+    <div id="qrContainer" class="qr-container" style="display: none;">
+        <h3>Your QR Code:</h3>
+        <img id="qrImage" class="qr-image" src="" alt="QR Code">
+        <p><a id="downloadLink" href="#" download="qrcode.png">Download QR Code</a></p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const generateBtn = document.getElementById('generateBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const errorLevel = document.getElementById('errorLevel');
+        const size = document.getElementById('size');
+        const fgColor = document.getElementById('fgColor');
+        const bgColor = document.getElementById('bgColor');
+        const gradient = document.getElementById('gradient');
+        const qrContainer = document.getElementById('qrContainer');
+        const qrImage = document.getElementById('qrImage');
+        const downloadLink = document.getElementById('downloadLink');
+        const loading = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+
+        // API key
+        const apiKey = 'f7c1b6e63656809d656293f1be098c30';
+
+        // Convert hex color to decimal
+        function hexToDecimal(hex) {
+            return parseInt(hex.replace('#', ''), 16);
+        }
+
+        // Update file info when a file is selected
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                fileInfo.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+            } else {
+                fileInfo.textContent = 'No file selected';
+            }
+        });
+
+        // Format file size in human-readable format
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        generateBtn.addEventListener('click', function() {
+            if (!fileInput.files || !fileInput.files[0]) {
+                errorElement.textContent = 'Please select a file';
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            // Check file size (QR codes have limitations)
+            if (file.size > 1000000) { // 1MB limit as a precaution
+                errorElement.textContent = 'File is too large. QR codes have limited capacity.';
+                return;
+            }
+
+            errorElement.textContent = '';
+            qrContainer.style.display = 'none';
+            loading.style.display = 'block';
+
+            // Read file content
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const fileContent = e.target.result;
+
+                // Build API URL with parameters
+                const apiUrl = new URL('http://api.zhyunxi.com/api.php');
+                apiUrl.searchParams.append('api', '4');
+                apiUrl.searchParams.append('key', apiKey);
+                apiUrl.searchParams.append('t', fileContent);
+                apiUrl.searchParams.append('d', errorLevel.value);
+                apiUrl.searchParams.append('l', size.value);
+                apiUrl.searchParams.append('fg', hexToDecimal(fgColor.value));
+                apiUrl.searchParams.append('bg', hexToDecimal(bgColor.value));
+                apiUrl.searchParams.append('gd', gradient.value);
+
+                fetch(apiUrl.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        loading.style.display = 'none';
+
+                        if (data.code === 0 && data.data && data.data[0] && data.data[0].url) {
+                            qrImage.src = data.data[0].url;
+                            downloadLink.href = data.data[0].url;
+                            qrContainer.style.display = 'block';
+                        } else {
+                            throw new Error('Invalid API response');
+                        }
+                    })
+                    .catch(error => {
+                        loading.style.display = 'none';
+                        errorElement.textContent = 'Error: ' + error.message + '. Note: You may need to use a CORS proxy or run this on a server.';
+                        console.error('Error:', error);
+                    });
+            };
+
+            reader.onerror = function() {
+                loading.style.display = 'none';
+                errorElement.textContent = 'Error reading file';
+            };
+
+            // Read the file as text
+            reader.readAsText(file);
+        });
+    });
+</script>
+</body>
+</html>

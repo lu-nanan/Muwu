@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件搜索测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .result-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .result-item p {
+            margin: 5px 0;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>文件搜索测试</h1>
+
+    <div class="form-group">
+        <label for="userId">用户ID:</label>
+        <input type="number" id="userId" placeholder="请输入用户ID" value="100000">
+    </div>
+
+    <div class="form-group">
+        <label for="keyword">搜索关键词:</label>
+        <input type="text" id="keyword" placeholder="请输入搜索关键词">
+    </div>
+
+    <button id="searchBtn" onclick="searchFiles()">搜索文件</button>
+
+    <div id="loading" class="loading">
+        <p>正在搜索，请稍候...</p>
+    </div>
+
+    <div id="results">
+        <!-- 搜索结果将在这里显示 -->
+    </div>
+</div>
+
+<script>
+    function searchFiles() {
+        const userId = document.getElementById('userId').value;
+        const keyword = document.getElementById('keyword').value;
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+
+        // 验证输入
+        if (!userId || !keyword) {
+            resultsDiv.innerHTML = '<p class="error">用户ID和搜索关键词不能为空!</p>';
+            return;
+        }
+
+        // 显示加载提示
+        loadingDiv.style.display = 'block';
+        resultsDiv.innerHTML = '';
+
+        // 构建API URL
+        const apiUrl = `/file/search?userId=${userId}&keyword=${encodeURIComponent(keyword)}`;
+
+        // 发送请求
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || '搜索请求失败');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 隐藏加载提示
+                loadingDiv.style.display = 'none';
+
+                // 显示结果
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<p>没有找到匹配的文件</p>';
+                    return;
+                }
+
+                // 创建表格显示结果
+                let tableHtml = `
+                        <h2>搜索结果 (共 ${data.length} 个)</h2>
+                        <table>
+                            <tr>
+                                <th>序号</th>
+                                <th>文件名</th>
+                                <th>文件类型</th>
+                                <th>标签</th>
+                                <th>大小</th>
+                                <th>上传时间</th>
+                            </tr>
+                    `;
+
+                data.forEach((file, index) => {
+                    // 计算文件大小的显示值
+                    let sizeDisplay = '';
+                    if (file.size < 1024) {
+                        sizeDisplay = `${file.size} B`;
+                    } else if (file.size < 1024 * 1024) {
+                        sizeDisplay = `${(file.size / 1024).toFixed(2)} KB`;
+                    } else {
+                        sizeDisplay = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+                    }
+
+                    // 格式化日期时间
+                    const uploadTime = new Date(file.uploadTime).toLocaleString();
+
+                    tableHtml += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${file.name}</td>
+                                <td>${file.type}</td>
+                                <td>${file.tag || '无'}</td>
+                                <td>${sizeDisplay}</td>
+                                <td>${uploadTime}</td>
+                            </tr>
+                        `;
+                });
+
+                tableHtml += '</table>';
+                resultsDiv.innerHTML = tableHtml;
+            })
+            .catch(error => {
+                // 隐藏加载提示
+                loadingDiv.style.display = 'none';
+
+                // 显示错误信息
+                resultsDiv.innerHTML = `<p class="error">错误: ${error.message}</p>`;
+                console.error('搜索文件时出错:', error);
+            });
+    }
+
+    // 允许按下回车键时触发搜索
+    document.getElementById('keyword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchFiles();
+        }
+    });
+</script>
+</body>
+</html>
