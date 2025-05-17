@@ -9,7 +9,6 @@ import com.hnu.muwu.config.GlobalVariables;
 import com.hnu.muwu.service.FileServiceImpl;
 import com.hnu.muwu.service.PhotoTagService;
 import com.hnu.muwu.service.ShareFileService;
-import com.hnu.muwu.service.ShareFileServiceImpl;
 import com.hnu.muwu.utiles.FileHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,9 +39,9 @@ public class FileController {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-    @Autowired
-    private ShareFileServiceImpl shareFileService;
 
+    @Autowired
+    private ShareFileService  shareFileService;
     /**
      * 文件上传解析接口
      * @param file 前端上传的文件
@@ -223,7 +222,107 @@ public class FileController {
         }
     }
 
+    /**
+     * 文件搜索接口
+     * @param userId 用户id
+     * @param keyword 搜索关键词
+     * @return 搜索结果列表
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchFiles(@RequestParam("userId") int userId, @RequestParam("keyword") String keyword) {
+        try {
+            if (keyword == null || keyword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("搜索关键词不能为空");
+            }
 
+            String userRootPath = GlobalVariables.rootPath;
+
+            String searchKeyword = "%" + keyword + "%";
+
+            List<FinalFile> foundFiles = fileService.searchFilesByNameLike(searchKeyword, userId);
+
+            if (foundFiles == null || foundFiles.isEmpty()) {
+                foundFiles = fileService.searchFilesByQianwen(keyword, userId);
+                if (foundFiles == null || foundFiles.isEmpty()) {
+                    return ResponseEntity.badRequest().body("没有找到与关键词匹配的文件");
+                }
+            }
+
+            List<Map<String, Object>> resultList = new ArrayList<>();
+            for (FinalFile file : foundFiles) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("type", "file");
+                item.put("name", file.getFilename());
+                item.put("uploadTime", file.getUploadTime());
+                item.put("size", file.getSize());
+                item.put("tag", file.getTag());
+                resultList.add(item);
+            }
+            return ResponseEntity.ok(resultList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("搜索文件失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/share")
+    public ResponseEntity<?> shareFiles(@RequestParam("path") String path, @RequestParam("userId") int userId) {
+        String fullPath = GlobalVariables.rootPath + File.separator + path;
+        File file = new File(fullPath);
+        try {
+            // 检查文件是否存在
+            if (!file.exists()) {
+                return ResponseEntity.badRequest().body("文件不存在");
+            }
+            // 检查是否是文件
+            if (!file.isFile()) {
+                return ResponseEntity.badRequest().body("指定路径不是一个文件");
+            }
+            // 检查文件所有权
+            FinalFile myFile = fileService.getFileByName(file.getName(), userId);
+            if (myFile == null) {
+                return ResponseEntity.badRequest().body("用户无权操作该文件");
+            }
+            // 创建分享目录（示例路径：rootPath/share/userId/）
+            String shareBasePath = GlobalVariables.sharePath +  File.separator + userId;
+            File shareDir = new File(shareBasePath);
+            if (!shareDir.exists()) {
+                shareDir.mkdirs();
+            }
+
+            // 生成唯一文件名防止冲突
+            String uniqueFileName = UUID.randomUUID() + "_" + file.getName();
+            Path targetPath = Paths.get(shareDir.getAbsolutePath(), uniqueFileName);
+
+            // 执行文件拷贝
+            Files.copy(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            String token = UUID.randomUUID().toString();
+            System.out.println("aaaaa"+token);
+            // 保存分享记录
+            ShareFileEntity record = new ShareFileEntity();
+            record.setToken(token);
+            record.setUserId(userId);
+            record.setSharePath(targetPath.toString());
+            record.setFileName(file.getName());
+            record.setExpiresAt(LocalDateTime.now().plusDays(7));
+            if(shareFileService.saveShare(record)!=1){
+                return ResponseEntity.internalServerError().body("服务器出差了");
+            }
+
+            // 构造返回的相对路径（示例：share/{userId}/filename）
+
+            String returnPath = shareBasePath +  "/" + uniqueFileName;
+            return ResponseEntity.ok(Collections.singletonMap("sharePath", returnPath));
+
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("文件操作失败：" + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
     /**
      * 获取文件扩展名
      * @param filename 文件名

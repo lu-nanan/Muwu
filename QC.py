@@ -53,9 +53,8 @@ def generate_qrcode(url, filename, output_dir="qrcodes"):
     return output_path
 
 def main():
-    # 配置
     port = 8000
-    
+
     # 获取服务器根目录
     server_directory = input("请输入服务器根目录路径: ")
     server_directory = os.path.abspath(server_directory)
@@ -67,7 +66,7 @@ def main():
     
     # 生成URL基础部分
     local_ip = get_local_ip()
-    base_url = f"http://{local_ip}:{port}"
+    base_url = f"https://5bc617d7.r21.cpolar.top"
     
     # 循环生成二维码
     while True:

@@ -160,20 +160,24 @@ public class MessageQueueHelper {
     public static void main(String[] args) {
         try {
             // 示例：发送文件处理请求
-            String filePath = "F:/大三下学期/移动应用开发/仓库/Muwu/image.png";  // 替换为实际文件路径
-            String operation = "OCR";
+            String serverDirectory = "F:\\大三下学期\\移动应用开发\\测试文件";
+            String filePath = "F:\\大三下学期\\移动应用开发\\测试文件\\100000\\images\\其他\\e11446894a9947dc765dbf8f01ea7f18_ocr.txt";  // 替换为实际文件路径
+            String operation = "create_file_qrcode";
+            Integer port = 8000;
             HashMap<String, Object> message = new HashMap<>();
-            message.put("filePath", filePath);
+            message.put("server_directory", serverDirectory);
+            message.put("file_path", filePath);
             message.put("operation", operation);
-
+            message.put("port", port);
             Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
 
             if (result != null) {
                 String status = (String) result.get("status");
-                String resultPath = (String) result.get("result");
-
+                String path = (String) result.get("qrcode_path");
+                String url = (String) result.get("url");
                 System.out.println("\n处理状态: " + status);
-                System.out.println("结果文件路径: " + resultPath);
+                System.out.println("结果文件路径: " + path);
+                System.out.println("二维码URL: " + url);
             } else {
                 System.out.println("未收到处理结果或处理超时");
             }
