@@ -30,7 +30,7 @@ channel = connection.channel()
 # 声明 exchange
 channel.exchange_declare(exchange='python-test', durable=True, exchange_type='fanout')
 
-base_url = f"https://5bc617d7.r21.cpolar.top"
+base_url = f"https://58c70004.r21.cpolar.top"
 
 def extract_pdf_text(pdf_path):
     """提取PDF文本并写入文件"""

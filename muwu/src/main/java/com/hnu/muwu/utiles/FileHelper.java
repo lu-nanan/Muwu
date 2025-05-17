@@ -3,10 +3,7 @@ package com.hnu.muwu.utiles;
 import com.hnu.muwu.bean.MyFile;
 import com.hnu.muwu.config.GlobalVariables;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,5 +121,20 @@ public class FileHelper {
             return null; // 或者抛出异常
         }
         return content.toString();
+    }
+
+    /**
+     * 将MyFile对象内容写入实际文件
+     * @param content  要写入的文件内容
+     * @param filePath  实际文件路径
+     * @throws IOException 文件写入异常
+     */
+    public static void writeContentToFile(String content, String filePath) throws IOException {
+        try (FileWriter writer = new FileWriter(filePath)) {
+            writer.write(content);
+        } catch (IOException e) {
+            System.err.println("无法写入文件: " + filePath);
+            throw e;
+        }
     }
 }

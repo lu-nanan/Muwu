@@ -10,6 +10,7 @@ import com.hnu.muwu.service.FileServiceImpl;
 import com.hnu.muwu.service.PhotoTagService;
 import com.hnu.muwu.service.ShareFileService;
 import com.hnu.muwu.utiles.FileHelper;
+import com.hnu.muwu.utiles.MessageQueueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -253,6 +254,7 @@ public class FileController {
                 Map<String, Object> item = new HashMap<>();
                 item.put("type", "file");
                 item.put("name", file.getFilename());
+                item.put("filePath", file.getFilePath());
                 item.put("uploadTime", file.getUploadTime());
                 item.put("size", file.getSize());
                 item.put("tag", file.getTag());
@@ -284,45 +286,50 @@ public class FileController {
             if (myFile == null) {
                 return ResponseEntity.badRequest().body("用户无权操作该文件");
             }
-            // 创建分享目录（示例路径：rootPath/share/userId/）
-            String shareBasePath = GlobalVariables.sharePath +  File.separator + userId;
-            File shareDir = new File(shareBasePath);
-            if (!shareDir.exists()) {
-                shareDir.mkdirs();
-            }
-
-            // 生成唯一文件名防止冲突
-            String uniqueFileName = UUID.randomUUID() + "_" + file.getName();
-            Path targetPath = Paths.get(shareDir.getAbsolutePath(), uniqueFileName);
-
-            // 执行文件拷贝
-            Files.copy(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
             String token = UUID.randomUUID().toString();
-            System.out.println("aaaaa"+token);
+
             // 保存分享记录
             ShareFileEntity record = new ShareFileEntity();
             record.setToken(token);
             record.setUserId(userId);
-            record.setSharePath(targetPath.toString());
+            record.setSharePath(path);
             record.setFileName(file.getName());
             record.setExpiresAt(LocalDateTime.now().plusDays(7));
             if(shareFileService.saveShare(record)!=1){
                 return ResponseEntity.internalServerError().body("服务器出差了");
             }
+            try {
+                HashMap<String, Object> message = new HashMap<>();
+                message.put("server_directory", GlobalVariables.rootPath);
+                message.put("file_path", GlobalVariables.rootPath+File.separator+path);
+                message.put("operation", "create_file_qrcode");
+                message.put("port", 8000);
+                Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+                if (result != null) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("status", (String) result.get("status"));
 
-            // 构造返回的相对路径（示例：share/{userId}/filename）
+                    String qrcodePath = (String) result.get("qrcode_path");
+                    byte[] qrcodeBytes = Files.readAllBytes(Paths.get(qrcodePath));
+                    String base64QRCode = Base64.getEncoder().encodeToString(qrcodeBytes);
+                    response.put("qrcode", base64QRCode);
 
-            String returnPath = shareBasePath +  "/" + uniqueFileName;
-            return ResponseEntity.ok(Collections.singletonMap("sharePath", returnPath));
-
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("文件操作失败：" + e.getMessage());
+                    response.put("url", (String) result.get("url"));
+                    return ResponseEntity.ok(response);
+                } else {
+                    System.out.println("未收到处理结果或处理超时");
+                    return ResponseEntity.internalServerError().body("生成分享链接失败");
+                }
+            } catch (IOException | TimeoutException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
+
+
     /**
      * 获取文件扩展名
      * @param filename 文件名

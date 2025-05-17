@@ -15,6 +15,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -43,6 +47,9 @@ public class FileServiceImpl implements FileService {
     @Override
     public FinalFile getFileByName (String name, Integer userId) {
         List<FinalFile> files = fileMapper.getFileByUserIdAndFilename(userId, name);
+        if (files.isEmpty()) {
+            return null;
+        }
         return files.getFirst();
     }
 
@@ -194,9 +201,15 @@ public class FileServiceImpl implements FileService {
                 String status = (String) result.get("status");
                 if (status.equals("success")) {
                     Map<String, Object> re = new HashMap<>();
-                    re.put("text", (String) result.get("result"));
-                    re.put("path", (String) result.get("file_path"));
-                    System.out.println("读取的文件路径" + result.get("file_path"));
+                    String text = (String) result.get("result");
+                    String path = (String) result.get("file_path");
+                    String question = "请整理格式化下面的OCR输出内容，注意，最后的回答只能包含格式化后的内容，不可以包含任何其他内容\n" + text;
+                    String res = QianwenHelper.processMessage(question);
+                    Files.writeString(
+                            Paths.get(path),
+                            res,
+                            StandardOpenOption.TRUNCATE_EXISTING
+                    );
                     MyFile OCRResult = FileHelper.createMyFileFromPath((String) result.get("file_path"), userId);
                     String tag = fileTagService.getTag(userId, (String) result.get("file_path"));
                     String description = this.getFileDescription((String) result.get("file_path"));
@@ -207,7 +220,7 @@ public class FileServiceImpl implements FileService {
                     return null;
                 }
             }
-        } catch (IOException | TimeoutException | InterruptedException e) {
+        } catch (IOException | TimeoutException | InterruptedException | NoApiKeyException | InputRequiredException e) {
             throw new RuntimeException(e);
         }
         return null;
