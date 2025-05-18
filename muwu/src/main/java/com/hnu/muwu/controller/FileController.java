@@ -79,9 +79,9 @@ public class FileController {
 
             redisTemplate.opsForValue().set(userId.toString(), json);
 
-            String tag = fileService.getTag(filePath, userId);
+            String tag = fileService.getTag(filePath, userId, fileType);
 
-            String text = fileService.getText(filePath);
+            String text = fileService.getText(filePath, fileType);
 
             String sPath = fileService.getPath(userId, tag, myFile, text);
 
@@ -117,7 +117,7 @@ public class FileController {
             return ResponseEntity.badRequest().body("数据解析失败");
         }
 
-        String description = fileService.getText(myFile.getFilePath());
+        String description = fileService.getText(myFile.getFilePath(), myFile.getFileType());
 
         FinalFile finalFile = new FinalFile(myFile, tag, description);
 
@@ -166,6 +166,16 @@ public class FileController {
                 } else {
                     return ResponseEntity.badRequest().body("OCR处理失败");
                 }
+            } else if (suggest.equals("Generate_mindmap")) {
+                String resulPath = fileService.generateMindmapFromMd(destinationPathStr, userId);
+                if (resulPath != null) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "Mindmap处理成功");
+                    response.put("filePath", resulPath);
+                    return ResponseEntity.ok(response);
+                } else {
+                    return ResponseEntity.badRequest().body("Mindmap处理失败");
+                }
             }
         } else {
             redisTemplate.delete(path);
@@ -210,6 +220,7 @@ public class FileController {
                     item.put("type", "file");
                     item.put("name", fileOrDir.getName());
                     FinalFile myFile = fileService.getFileByName(fileOrDir.getName(), userId);
+                    item.put("file_path", myFile.getFilename());
                     item.put("uploadTime", myFile.getUploadTime());
                     item.put("size", myFile.getSize());
                     item.put("tag", myFile.getTag());
@@ -235,8 +246,6 @@ public class FileController {
             if (keyword == null || keyword.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("搜索关键词不能为空");
             }
-
-            String userRootPath = GlobalVariables.rootPath;
 
             String searchKeyword = "%" + keyword + "%";
 

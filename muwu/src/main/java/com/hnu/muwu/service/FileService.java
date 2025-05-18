@@ -19,9 +19,9 @@ public interface FileService {
 
     String fileOperatorExtend(String filePath, String type);
 
-    String getTag (String filePath, Integer userId);
+    String getTag (String filePath, Integer userId, String fileType);
 
-    String getText (String filePath);
+    String getText (String filePath, String fileType);
 
     String getPath (Integer userId, String tag , MyFile file, String text);
 

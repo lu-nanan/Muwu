@@ -14,9 +14,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -86,35 +88,45 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public String getTag (String filePath, Integer userId) {
-        List<String> tags = photoTagService.getTagsByUserId(userId);
-        HashMap<String, Object> message = new HashMap<>();
-        message.put("file_path", filePath);
-        message.put("operation", "get_photo_tag");
-        message.put("text_descriptions", tags);
-        try {
-            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
-            if (result != null) {
-                return photoTagService.getTagByName(userId, (String) result.get("result"));
+    public String getTag (String filePath, Integer userId, String fileType) {
+        if (fileType.equals("png") || fileType.equals("jpg")) {
+            List<String> tags = photoTagService.getTagsByUserId(userId);
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("operation", "get_photo_tag");
+            message.put("text_descriptions", tags);
+            try {
+                Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+                if (result != null) {
+                    return photoTagService.getTagByName(userId, (String) result.get("result"));
+                }
+            } catch (IOException | TimeoutException | InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } catch (IOException | TimeoutException | InterruptedException e) {
-            throw new RuntimeException(e);
+        } else if (fileType.equals("md") || fileType.equals("txt")) {
+            return fileTagService.getTag(userId, filePath);
         }
+
         return null;
     }
 
     @Override
-    public String getText (String filePath) {
-        HashMap<String, Object> message = new HashMap<>();
-        message.put("file_path", filePath);
-        message.put("operation", "generate_caption");
-        try {
-            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
-            if (result != null) {
-                return TranslateHelper.translate((String) result.get("result"));
+    public String getText (String filePath, String fileType) {
+        if (fileType.equals("png") || fileType.equals("jpg")) {
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("operation", "generate_caption");
+            try {
+                Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+                if (result != null) {
+                    return TranslateHelper.translate((String) result.get("result"));
+                }
+            } catch (IOException | TimeoutException | InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } catch (IOException | TimeoutException | InterruptedException e) {
-            throw new RuntimeException(e);
+            return null;
+        } else if (fileType.equals("md") || fileType.equals("txt")) {
+            return this.getFileDescription(filePath);
         }
         return null;
     }
@@ -158,9 +170,72 @@ public class FileServiceImpl implements FileService {
     public String fileOperatorExtend(String filePath, String type) {
         if (type.equals("png") || type.equals("jpg")) {
             return photoExtend(filePath);
+        } else if (type.equals("md")) {
+            return mdExtend(filePath);
         }
         return null;
     }
+
+
+    public String mdExtend(String filePath) {
+        redisTemplate.opsForValue().set(filePath, "Generate_mindmap");
+        return "检测到上传markdown文件,是否生成思维导图";
+    }
+
+
+    public String generateMindmapFromMd(String filePath, Integer userId) {
+        String text = FileHelper.readFileContent(filePath);
+        String question = "分析下面的文件内容，参照markmap的风格，输出markdown格式的思维导图，注意，回答应只包含思维导图的内容，不可包含其他任何内容\n" + text;
+        try {
+            String answer = QianwenHelper.processMessage(question);
+
+            File originalFile = new File(filePath);
+            String parentDirectory = originalFile.getParent(); // 获取文件所在目录
+            String originalFilename = originalFile.getName(); // 获取原始文件名（含扩展名）
+
+            String baseName = originalFilename;
+            int lastDotIndex = originalFilename.lastIndexOf('.');
+            if (lastDotIndex != -1) {
+                baseName = originalFilename.substring(0, lastDotIndex); // 去掉扩展名
+            }
+
+            String newFilename = baseName + "_s.md";
+            File newFile = new File(parentDirectory, newFilename);
+
+            try (FileWriter writer = new FileWriter(newFile)) {
+                writer.write(answer);
+            }
+
+            String newFilePath = newFile.getAbsolutePath();
+            String outputDir = FileHelper.getFileDirectory(newFilePath);
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", newFilePath);
+            message.put("output_dir", outputDir);
+            message.put("operation", "Generate_mindmap");
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+            if (result != null) {
+                if (result.get("status").equals("success")) {
+                    Path htmlPath = Paths.get((String) result.get("html_path"));
+                    MyFile myFile = FileHelper.createMyFileFromPath(htmlPath.toString(), userId);
+                    String tag = fileTagService.getTag(userId, htmlPath.toString());
+                    String description = getFileDescription(htmlPath.toString());
+                    assert myFile != null;
+                    this.insertFile(new FinalFile(myFile, tag, description));
+                    return (String) result.get("html_path");
+                } else {
+                    return (String) result.get("result");
+                }
+            } else {
+                return "未收到处理结果或处理超时";
+            }
+
+        } catch (NoApiKeyException | InputRequiredException | InterruptedException | TimeoutException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException("写入文件失败", e);
+        }
+    }
+
 
     public String photoExtend(String filePath) {
         try {
@@ -174,7 +249,7 @@ public class FileServiceImpl implements FileService {
                 if (status.equals("success")) {
                     if (re) {
                         redisTemplate.opsForValue().set(filePath, "OCR");
-                        return "检测到图片为富文本图片，是否提取图片文本";
+                        return "检测到上传图片为富文本图片，是否提取图片文本";
                     } else {
                         return null;
                     }

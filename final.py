@@ -19,6 +19,9 @@ from spire.pdf import PdfDocument
 from spire.pdf import FileFormat
 import torch
 from transformers import BlipProcessor, BlipForConditionalGeneration
+import subprocess
+import sys
+
 
 
 # RabbitMQ 连接配置
@@ -30,7 +33,7 @@ channel = connection.channel()
 # 声明 exchange
 channel.exchange_declare(exchange='python-test', durable=True, exchange_type='fanout')
 
-base_url = f"https://58c70004.r21.cpolar.top"
+base_url = f"https://511b136e.r21.cpolar.top"
 
 def extract_pdf_text(pdf_path):
     """提取PDF文本并写入文件"""
@@ -272,16 +275,6 @@ def generate_qrcode(url, filename, output_dir="qrcodes"):
     return output_path
 
 def create_file_qrcode(file_path, server_directory=None, port=8000):
-    """创建文件二维码并提供访问URL
-    
-    参数:
-        file_path: 要分享的文件路径
-        server_directory: 服务器根目录（如果为None则使用文件所在目录）
-        port: 服务器端口号
-        
-    返回:
-        字典: 包含二维码路径、URL等信息
-    """
     try:
         # 如果未指定服务器目录，使用文件所在目录
         if server_directory is None:
@@ -325,7 +318,6 @@ def create_file_qrcode(file_path, server_directory=None, port=8000):
             )
             server_thread.daemon = True
             server_thread.start()
-            # 给服务器一点时间启动
             time.sleep(1)
             
         # 生成二维码
@@ -343,6 +335,69 @@ def create_file_qrcode(file_path, server_directory=None, port=8000):
         return {
             "status": "failure",
             "message": f"生成二维码失败: {str(e)}"
+        }
+    
+def process_markdown_file(input_path, output_dir):
+    if not os.path.exists(input_path):
+        print(f"Error: Input file '{input_path}' does not exist")
+        return False
+    
+    input_dir = os.path.dirname(input_path)
+    input_filename = os.path.basename(input_path)
+    filename_without_ext = os.path.splitext(input_filename)[0]
+    
+    if output_dir is None:
+        output_dir = input_dir
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    html_file_path = os.path.join(output_dir, f"{filename_without_ext}.html")
+    
+    print(f"Processing Markdown file: {input_path}")
+    print(f"Output HTML will be saved to: {html_file_path}")
+        
+    try:
+        markdown_cmd = f"markmap \"{input_path}\" --output \"{html_file_path}\" --no-open"
+        
+        if os.name == 'nt':
+            markdown_cmd = f"powershell -Command markmap \"{input_path}\" --output \"{html_file_path}\" --no-open"
+        
+        print(f"Executing command: {markdown_cmd}")
+        
+        result = subprocess.run(
+            markdown_cmd,
+            check=True, 
+            text=True, 
+            shell=True,
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE, 
+            universal_newlines=True
+        )
+        
+        print(f"Command return code: {result.returncode}")
+        print(f"Command output: {result.stdout}")
+        
+        if result.returncode != 0:
+            print(f"Command error: {result.stderr}")
+            return False
+        
+        print(f"Successfully converted Markdown to HTML mindmap: {html_file_path}")
+        return {
+            "status": "success",
+            "html_path": html_file_path
+        }
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error generating HTML file: {e.output}\n{e.stderr}")
+        return {
+            "status": "failure",
+            "result": f"Error generating HTML file: {e.output}\n{e.stderr}"
+        }
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return {
+            "status": "failure",
+            "result": f"Unexpected error: {str(e)}"
         }
 
 
@@ -407,6 +462,9 @@ def callback(ch, method, properties, body):
             port = message.get("port", 8000)
             result = create_file_qrcode(file_path, server_directory, port)
             response = result
+        elif operation == "Generate_mindmap":
+            output_dir = message.get("output_dir")
+            response = process_markdown_file(file_path, output_dir)
         else:
             print(f"不支持的操作类型：{operation}")
             response = {

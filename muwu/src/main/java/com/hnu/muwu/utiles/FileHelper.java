@@ -101,6 +101,8 @@ public class FileHelper {
             // 如果relativePath开头有文件分隔符，则移除它
             if (relativePath.startsWith(File.separator)) {
                 relativePath = relativePath.substring(File.separator.length());
+                Path path = Paths.get(relativePath);
+                relativePath = path.toString();
             }
         }
 
@@ -108,6 +110,11 @@ public class FileHelper {
         return new MyFile(userId, filename, relativePath, fileType, uploadTime, fileSize);
     }
 
+    /**
+     * 读取文件内容
+     * @param absolutePath 文件的绝对路径
+     * @return 文件内容，如果读取失败则返回null
+     */
     public static String readFileContent(String absolutePath) {
         StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(absolutePath))) {
@@ -135,6 +142,26 @@ public class FileHelper {
         } catch (IOException e) {
             System.err.println("无法写入文件: " + filePath);
             throw e;
+        }
+    }
+
+    /**
+     * 获取文件所在文件夹的路径。
+     *
+     * @param filePath 文件的完整路径
+     * @return 文件所在文件夹的路径
+     */
+    public static String getFileDirectory(String filePath) {
+        File file = new File(filePath);
+        File parentFile = file.getParentFile();
+        return parentFile != null ? parentFile.getAbsolutePath() : null;
+    }
+
+    public static void main(String[] args) {
+        String filePath = "F:\\大三下学期\\移动应用开发\\仓库\\Muwu\\项目计划书.md";
+        String content = readFileContent(filePath);
+        if (content != null) {
+            System.out.println("文件内容：" + content);
         }
     }
 }
