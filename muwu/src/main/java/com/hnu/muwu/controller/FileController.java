@@ -155,6 +155,7 @@ public class FileController {
         if (accept) {
             Path destinationPath = Paths.get(GlobalVariables.rootPath, path);
             String destinationPathStr = destinationPath.toString();
+            System.out.println(destinationPathStr);
             String suggest = redisTemplate.opsForValue().get(destinationPathStr);
             System.out.println(suggest);
             assert suggest != null;

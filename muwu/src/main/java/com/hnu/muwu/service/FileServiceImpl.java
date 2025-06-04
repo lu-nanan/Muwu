@@ -221,6 +221,7 @@ public class FileServiceImpl implements FileService {
                     String description = getFileDescription(htmlPath.toString());
                     assert myFile != null;
                     this.insertFile(new FinalFile(myFile, tag, description));
+                    FileHelper.deleteFile(newFilePath);
                     return (String) result.get("html_path");
                 } else {
                     return (String) result.get("result");
@@ -248,7 +249,8 @@ public class FileServiceImpl implements FileService {
                 Boolean re = (Boolean) result.get("result");
                 if (status.equals("success")) {
                     if (re) {
-                        redisTemplate.opsForValue().set(filePath, "OCR");
+                        Path path = Paths.get(filePath);
+                        redisTemplate.opsForValue().set(path.toString(), "OCR");
                         return "检测到上传图片为富文本图片，是否提取图片文本";
                     } else {
                         return null;
@@ -290,6 +292,8 @@ public class FileServiceImpl implements FileService {
                     String description = this.getFileDescription((String) result.get("file_path"));
                     assert OCRResult != null;
                     this.insertFile(new FinalFile(OCRResult, tag, description));
+                    re.put("file_path", (String) result.get("file_path"));
+                    re.put("result", res);
                     return re;
                 } else {
                     return null;

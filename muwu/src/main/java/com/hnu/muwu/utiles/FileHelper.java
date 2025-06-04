@@ -157,11 +157,33 @@ public class FileHelper {
         return parentFile != null ? parentFile.getAbsolutePath() : null;
     }
 
-    public static void main(String[] args) {
-        String filePath = "F:\\大三下学期\\移动应用开发\\仓库\\Muwu\\项目计划书.md";
-        String content = readFileContent(filePath);
-        if (content != null) {
-            System.out.println("文件内容：" + content);
+    /**
+     * 删除指定路径的文件
+     *
+     * @param path 文件路径
+     * @return true - 删除成功，false - 删除失败或路径不合法
+     */
+    public static boolean deleteFile(String path) {
+        if (path == null || path.isEmpty()) {
+            return false;
         }
+
+        File file = new File(path);
+
+        try {
+            if (file.exists() && file.isFile()) {
+                return file.delete();
+            }
+        } catch (SecurityException e) {
+            return false;
+        }
+        return false;
+    }
+
+    // 示例用法
+    public static void main(String[] args) {
+        String filePath = "F:\\大三下学期\\移动应用开发\\仓库\\Muwu\\项目计划书s.html";
+        boolean result = deleteFile(filePath);
+        System.out.println("文件删除结果: " + (result ? "成功" : "失败"));
     }
 }
