@@ -1,0 +1,15 @@
+pika
+json
+paddlehub
+shutil
+opencv-python
+qrcode
+Pillow
+comtypes
+pdfplumber
+pytesseract
+spire.pdf
+torch
+transformers
+torchvision
+clip

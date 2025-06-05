@@ -16,7 +16,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,7 +42,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public int insertFile(FinalFile file) {
         return fileMapper.insertFile(file.getUserId(), file.getFilename(), file.getFilePath(), file.getFileType(),
-                                                file.getUploadTime(), file.getSize(), file.getTag(), file.getDescription());
+                file.getUploadTime(), file.getSize(), file.getTag(), file.getDescription());
     }
 
     @Override
@@ -57,7 +56,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FinalFile> searchFilesByNameLike(String keyword, Integer userId) {
-       return fileMapper.getFileByKeywordAndUserId(keyword, userId);
+        return fileMapper.getFileByKeywordAndUserId(keyword, userId);
     }
 
     @Override
@@ -104,9 +103,16 @@ public class FileServiceImpl implements FileService {
                 throw new RuntimeException(e);
             }
         } else if (fileType.equals("md") || fileType.equals("txt")) {
-            return fileTagService.getTag(userId, filePath);
+            String content = FileHelper.readFileContent(filePath);
+            return fileTagService.getTagByContent(userId, filePath, content);
+        } else if (fileType.equals("docx")) {
+            try {
+                String content = WordHelper.readDocx(filePath);
+                return fileTagService.getTagByContent(userId, filePath, content);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-
         return null;
     }
 
@@ -126,7 +132,15 @@ public class FileServiceImpl implements FileService {
             }
             return null;
         } else if (fileType.equals("md") || fileType.equals("txt")) {
-            return this.getFileDescription(filePath);
+            String content = FileHelper.readFileContent(filePath);
+            return this.getFileDescription(filePath, content);
+        } else if (fileType.equals("docx")) {
+            try {
+                String content = WordHelper.readDocx(filePath);
+                return this.getFileDescription(filePath, content);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return null;
     }
@@ -140,7 +154,7 @@ public class FileServiceImpl implements FileService {
         message.put("file-tree", fileTree);
         message.put("tag", tag);
         String question = "请根据下面的文件信息，结合用户已有的文件结构和文件存放习惯，综合考虑用户习惯和查找检索方便等因素，"
-                    + "直接给出此文件合适的存放路径(路径需包含文件名，从用户文件起始，如：100000/images/image.png),回答不要包含其他任何的内容" + message.toString();
+                + "直接给出此文件合适的存放路径(路径需包含文件名，从用户文件起始，如：100000/images/image.png),回答不要包含其他任何的内容" + message.toString();
         try {
             return QianwenHelper.processMessage(question);
         } catch (Exception e) {
@@ -172,6 +186,8 @@ public class FileServiceImpl implements FileService {
             return photoExtend(filePath);
         } else if (type.equals("md")) {
             return mdExtend(filePath);
+        } else if (type.equals("docx")) {
+            return wordExtend(filePath);
         }
         return null;
     }
@@ -182,7 +198,13 @@ public class FileServiceImpl implements FileService {
         return "检测到上传markdown文件,是否生成思维导图";
     }
 
+    public String wordExtend(String filePath) {
+        redisTemplate.opsForValue().set(filePath, "convert_word_to_pdf");
+        return "检测到上传word文件,是否转化为pdf";
+    }
 
+
+    @Override
     public String generateMindmapFromMd(String filePath, Integer userId) {
         String text = FileHelper.readFileContent(filePath);
         String question = "分析下面的文件内容，参照markmap的风格，输出markdown格式的思维导图，注意，回答应只包含思维导图的内容，不可包含其他任何内容\n" + text;
@@ -217,8 +239,8 @@ public class FileServiceImpl implements FileService {
                 if (result.get("status").equals("success")) {
                     Path htmlPath = Paths.get((String) result.get("html_path"));
                     MyFile myFile = FileHelper.createMyFileFromPath(htmlPath.toString(), userId);
-                    String tag = fileTagService.getTag(userId, htmlPath.toString());
-                    String description = getFileDescription(htmlPath.toString());
+                    String tag = fileTagService.getTagByContent(userId, htmlPath.toString(), FileHelper.readFileContent(htmlPath.toString()));
+                    String description = getFileDescription(htmlPath.toString(), FileHelper.readFileContent(htmlPath.toString()));
                     assert myFile != null;
                     this.insertFile(new FinalFile(myFile, tag, description));
                     FileHelper.deleteFile(newFilePath);
@@ -288,8 +310,8 @@ public class FileServiceImpl implements FileService {
                             StandardOpenOption.TRUNCATE_EXISTING
                     );
                     MyFile OCRResult = FileHelper.createMyFileFromPath((String) result.get("file_path"), userId);
-                    String tag = fileTagService.getTag(userId, (String) result.get("file_path"));
-                    String description = this.getFileDescription((String) result.get("file_path"));
+                    String tag = fileTagService.getTagByContent(userId, (String) result.get("file_path"), FileHelper.readFileContent((String) result.get("file_path")));
+                    String description = this.getFileDescription((String) result.get("file_path"), FileHelper.readFileContent((String) result.get("file_path")));
                     assert OCRResult != null;
                     this.insertFile(new FinalFile(OCRResult, tag, description));
                     re.put("file_path", (String) result.get("file_path"));
@@ -306,14 +328,43 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public String getFileDescription(String filePath) {
+    public String getFileDescription(String filePath, String content) {
         try {
-            String content = FileHelper.readFileContent(filePath);
             String question = "请根据下面的文件内容，生成一个50字左右的概述，回答应只包含概述内容，不可包含任何其他内容\n" + content;
             System.out.println(question);
             return QianwenHelper.processMessage(question);
         } catch (NoApiKeyException | InputRequiredException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    @Override
+    public String convertWordToPdf(String filePath, int userId) {
+        try {
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("operation", "convert_word_to_pdf");
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+            if (result != null) {
+                String status = (String) result.get("status");
+                if (status.equals("success")) {
+                    String resultPath = (String) result.get("result");
+                    MyFile resultFile = FileHelper.createMyFileFromPath(resultPath, userId);
+                    String content = FileHelper.readFileContent((String) result.get("file_path"));
+                    String tag = fileTagService.getTagByContent(userId, resultPath, content);
+                    String description = this.getFileDescription(resultPath, content);
+                    assert resultFile != null;
+                    this.insertFile(new FinalFile(resultFile, tag, description));
+                    FileHelper.deleteFile((String) result.get("file_path"));
+                    return resultPath;
+                }
+            } else {
+                System.out.println("未收到处理结果或处理超时");
+            }
+        } catch (IOException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 }

@@ -1,0 +1,16 @@
+{
+  "rabbitmq": {
+    "host": "localhost",
+    "port": 5672,
+    "virtual_host": "/",
+    "username": "admin",
+    "password": "123456"
+  },
+  "base_url": "https://511b136e.r21.cpolar.top",
+  "paths": {
+    "blip_model": "models/blip_model",
+    "clip_model": "models/clip_model/ViT-B-32.pth",
+    "sr_model": "models/sr_model/srgan_generator_final.pth",
+    "temp_dist": "F:\\image.png"
+  }
+}

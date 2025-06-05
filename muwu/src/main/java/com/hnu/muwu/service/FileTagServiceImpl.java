@@ -20,8 +20,7 @@ public class FileTagServiceImpl implements FileTagService {
     }
 
     @Override
-    public String getTag(Integer userId, String filePath) {
-        String content = FileHelper.readFileContent(filePath);
+    public String getTagByContent(Integer userId, String filePath, String content) {
         List<String> tags = this.getTagsByUserId(userId);
         String question = "请根据文件的内容，从下面的tags字符串列表中选择一个最合适的tag返回，直接回答最合适的tag，如：工作，不可包含其他任何内容。\n" + tags.toString() + "\n" + content;
         System.out.println(question.length());

@@ -25,6 +25,9 @@ public interface FileService {
 
     String getPath (Integer userId, String tag , MyFile file, String text);
 
-    String getFileDescription(String filePath);
+    String generateMindmapFromMd(String filePath, Integer userId);
 
+    String getFileDescription(String filePath, String content);
+
+    String convertWordToPdf(String filePath, int userId);
 }

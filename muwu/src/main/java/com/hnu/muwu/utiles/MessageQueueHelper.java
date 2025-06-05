@@ -99,7 +99,7 @@ public class MessageQueueHelper {
 
         // 等待结果（设置超时）
         synchronized (monitor) {
-            monitor.wait(10000); // 10秒超时
+            monitor.wait(20000); // 10秒超时
         }
 
         // 取消消费者

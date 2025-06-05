@@ -174,8 +174,18 @@ public class FileController {
                     response.put("message", "Mindmap处理成功");
                     response.put("filePath", resulPath);
                     return ResponseEntity.ok(response);
-                } else {
+                }  else {
                     return ResponseEntity.badRequest().body("Mindmap处理失败");
+                }
+            } else if (suggest.equals("convert_word_to_pdf")){
+                String resulPath = fileService.convertWordToPdf(destinationPathStr, userId);
+                if (resulPath != null) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "文件处理成功");
+                    response.put("filePath", resulPath);
+                    return ResponseEntity.ok(response);
+                } else {
+                    return ResponseEntity.badRequest().body("文件处理失败");
                 }
             }
         } else {
