@@ -25,10 +25,10 @@ public interface    PhotoTagMapper {
     int insertPhotoTag(PhotoTag photoTag);
     @Update({
             "UPDATE photo_tag",
-            "SET tag = #{newTag},name = #{newName}",
+            "SET tag = #{newTag}, name = #{newName} ",
             "WHERE user_id = #{userId} AND tag = #{oldTag}"
     })
-    int updateFileTag(@Param("userId") String userId,
+    int updatePhotoTag(@Param("userId") String userId,
                       @Param("oldTag") String oldTag,
                       @Param("newTag") String newTag,
                       @Param("newName") String newName);

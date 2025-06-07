@@ -27,7 +27,7 @@ public class PhotoTagServiceImpl implements PhotoTagService{
         return photoTagMapper.insertPhotoTag(photoTag);}
     @Override
     public int update(String userId,String oldTag,String newTag,String newName){
-        return photoTagMapper.updateFileTag(userId,oldTag,newTag,newName);
+        return photoTagMapper.updatePhotoTag(userId,oldTag,newTag,newName);
     };
     @Override
     public int delete(String userId,String tag){
@@ -43,12 +43,12 @@ public class PhotoTagServiceImpl implements PhotoTagService{
         String[] photoTag2={"Animal","Plants","Scenery","Portrait","Others","Documents"};
         PhotoTag photoTag1=new PhotoTag();
         photoTag1.setUserId(userId);
-        PhotoTagServiceImpl photoTagService = new PhotoTagServiceImpl();
+        //PhotoTagServiceImpl photoTagService = new PhotoTagServiceImpl();
         int i=0;
         for(String tag:photoTag){
             photoTag1.setTag(tag);
             photoTag1.setName(photoTag2[i++]);
-            photoTagService.insert(photoTag1);
+            this.insert(photoTag1);
         }
     }
 }

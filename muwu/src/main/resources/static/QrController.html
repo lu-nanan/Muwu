@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 8px;
+            width: 300px;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .response {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #eee;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h2>测试 QR Code 获取接口</h2>
+<form id="qrForm">
+    <label for="userId">用户 ID:</label><br>
+    <input type="number" id="userId" name="userId" required value="123"><br>
+
+    <label for="qrPath">二维码文件路径（完整路径）:</label><br>
+    <input type="text" id="qrPath" name="qrPath" placeholder="例如：C:\images\qrcode.png" required><br>
+
+    <button type="submit">获取二维码</button>
+</form>
+
+<img id="qrImage" src="" alt="二维码将显示在这里" style="display:none;">
+<div class="response" id="errorText"></div>
+
+<script>
+    document.getElementById('qrForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const userId = document.getElementById('userId').value;
+        const qrPath = document.getElementById('qrPath').value;
+
+        // 构造请求 URL
+        const url = `/qr/get?userId=${userId}&qrPath=${encodeURIComponent(qrPath)}`;
+
+        // 清空之前的错误或图片
+        document.getElementById('qrImage').style.display = 'none';
+        document.getElementById('qrImage').src = '';
+        document.getElementById('errorText').textContent = '';
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.qrcode) {
+                    const base64Image = "data:image/png;base64," + data.qrcode;
+                    const imgElement = document.getElementById('qrImage');
+                    imgElement.src = base64Image;
+                    imgElement.style.display = 'block';
+                } else {
+                    document.getElementById('errorText').textContent = '响应中未包含二维码数据。';
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorText').textContent = '请求失败: ' + error.message;
+            });
+    });
+</script>
+</body>
+</html>

@@ -75,9 +75,11 @@ public class TagController {
         System.out.println(newtag);
         try{
             if(type.equals("图片")){
+                System.out.println("图片");
                 photoTagService.update(userId,oldtag,newtag,TranslateHelper.translateChinese(newtag));
             }
             else {
+                System.out.println("文件");
                 fileTagService.update(userId,oldtag,newtag);
             }
             Map<String, Object> response = new HashMap<>();

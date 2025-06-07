@@ -51,5 +51,8 @@ public interface FileMapper {
             @Result(property = "description", column = "description")
     })
     List<FinalFile> getAllFilesByUserId(Integer userId);
+    // 新增：根据用户ID和文件路径删除文件记录
+    @Delete("DELETE FROM files WHERE user_id = #{userId} AND file_path = #{filePath}")
+    int deleteFileByUserIdAndPath(Integer userId, String filePath);
 }
 

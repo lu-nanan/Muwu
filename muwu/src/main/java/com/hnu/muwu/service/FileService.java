@@ -36,5 +36,7 @@ public interface FileService {
 
     String convertWordToPdf(String filePath, int userId);
 
-    String getPdfText(String filePath);
+    String getPdfText(String filePath, int userId);
+
+    boolean deleteFile(Integer userId, String filePath);
 }

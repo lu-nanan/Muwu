@@ -348,8 +348,8 @@ public class FileServiceImpl implements FileService {
                     String description = this.getFileDescription((String) result.get("file_path"), FileHelper.readFileContent((String) result.get("file_path")));
                     assert OCRResult != null;
                     this.insertFile(new FinalFile(OCRResult, tag, description));
-                    re.put("file_path", (String) result.get("file_path"));
-                    re.put("result", res);
+                    re.put("res", res);
+                    re.put("result", (String) result.get("file_path"));
                     return re;
                 } else {
                     return null;
@@ -425,7 +425,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public String getPdfText(String filePath) {
+    public String getPdfText(String filePath, int userId) {
         try {
             HashMap<String, Object> message = new HashMap<>();
             message.put("file_path", filePath);
@@ -434,6 +434,12 @@ public class FileServiceImpl implements FileService {
             if (result != null) {
                 String status = (String) result.get("status");
                 if (status.equals("success")) {
+                    MyFile myFile = FileHelper.createMyFileFromPath((String) result.get("result"), userId);
+                    String content = FileHelper.readFileContent((String) result.get("result"));
+                    String tag = fileTagService.getTagByContent(userId, myFile.getFilePath(), content);
+                    String description = this.getFileDescription((String) result.get("result"), content);
+                    FinalFile  finalFile = new FinalFile(myFile, tag, description);
+                    this.insertFile(finalFile);
                     return (String) result.get("result");
                 } else {
                     return "提取pdf文本失败";
@@ -444,6 +450,35 @@ public class FileServiceImpl implements FileService {
             }
         } catch (IOException | InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 删除文件（包括物理文件和数据库记录）
+     * @param userId 用户ID
+     * @param filePath 文件相对路径
+     * @return true-删除成功，false-删除失败
+     */
+    @Override
+    public boolean deleteFile(Integer userId, String filePath) {
+        try {
+//            // 1. 先删除物理文件
+//            String fullPath = GlobalVariables.rootPath + File.separator + filePath;
+//            boolean fileDeleted = FileHelper.deleteFile(fullPath);
+//
+//            if (!fileDeleted) {
+//                return false;
+//            }
+
+            // 2. 删除数据库记录
+            int result = fileMapper.deleteFileByUserIdAndPath(userId, filePath);
+            System.out.println(result);
+
+            return result > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            return false;
         }
     }
 }

@@ -51,7 +51,7 @@ public class FileTagServiceImpl implements FileTagService {
         FileTagServiceImpl fileTagService = new FileTagServiceImpl();
         for(String tag:fileTag){
             fileTag1.setTag(tag);
-            fileTagService.insert(fileTag1);
+            this.insert(fileTag1);
         }
     }
 }

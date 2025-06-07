@@ -231,6 +231,7 @@ public class FileController {
                     item.put("type", "file");
                     item.put("name", fileOrDir.getName());
                     FinalFile myFile = fileService.getFileByName(fileOrDir.getName(), userId);
+                    item.put("file_type", myFile.getFileType());
                     item.put("file_path", myFile.getFilename());
                     item.put("uploadTime", myFile.getUploadTime());
                     item.put("size", myFile.getSize());
@@ -315,11 +316,13 @@ public class FileController {
 
             // 保存分享记录
             ShareFileEntity record = new ShareFileEntity();
-            record.setToken(token);
+            //record.setToken(token);
             record.setUserId(userId);
             record.setSharePath(path);
             record.setFileName(file.getName());
-            record.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            Timestamp timestamp  = new Timestamp(System.currentTimeMillis());
+            record.setCreatedAt(timestamp.valueOf(LocalDateTime.now()));
+            System.out.println(timestamp.valueOf(LocalDateTime.now()));
             System.out.println(record.getCreatedAt());
 
 //            if(shareFileService.saveShare(record)!=1){
@@ -415,4 +418,45 @@ public class FileController {
                     .body("获取分享文件失败: " + e.getMessage());
         }
     }
+    /**
+     * 删除文件接口
+     * @param userId 用户ID
+     * @param filePath 文件相对路径
+     * @return 删除处理结果
+     */
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteFile(@RequestParam("userId") Integer userId,
+                                        @RequestParam("filePath") String filePath) {
+        System.out.println(userId);
+        System.out.println(filePath);
+        // 检查参数是否为空
+        if (filePath == null || filePath.isEmpty()) {
+            return ResponseEntity.badRequest().body("文件路径不能为空");
+        }
+
+        Path filePathObj = Paths.get(filePath);
+
+        try {
+            // 调用service层删除文件
+            boolean isDeleted = fileService.deleteFile(userId, filePathObj.toString());
+
+            if (isDeleted) {
+                FileHelper.deleteFile(GlobalVariables.rootPath+File.separator+filePath);
+                // 构造成功响应
+                System.out.println("删除成功");
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "文件删除成功");
+                response.put("filePath", filePath);
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body("文件删除失败：文件不存在或无法访问");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            return ResponseEntity.internalServerError().body("文件删除失败: " + e.getMessage());
+        }
+    }
+
 }

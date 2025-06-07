@@ -1,0 +1,11 @@
+SDFormatter V4.0
+
+存储媒介的格式化已成功，请将存储媒介拨出后再使用。
+
+Volume Information
+- File system: FAT32
+- Total space: 29.7 GB (31,902,400,512 Bytes)
+- Cluster size: 32768 Bytes
+
+确定
+格式化完成

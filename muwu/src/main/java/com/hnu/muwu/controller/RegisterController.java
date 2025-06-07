@@ -4,6 +4,7 @@ package com.hnu.muwu.controller;
 import com.hnu.muwu.DTO.RegisterRequest;
 import com.hnu.muwu.bean.PhotoTag;
 import com.hnu.muwu.config.GlobalVariables;
+import com.hnu.muwu.mapper.FileTagMapper;
 import com.hnu.muwu.service.EmailServiceImpl;
 import com.hnu.muwu.service.FileTagServiceImpl;
 import com.hnu.muwu.service.PhotoTagServiceImpl;
@@ -29,6 +30,10 @@ public class RegisterController {
     private FileTagServiceImpl fileTagService;
     @Resource
     private PhotoTagServiceImpl photoTagServiceImpl;
+    @Autowired
+    private FileTagMapper  fileTagMapper;
+    @Autowired
+    private PhotoTagServiceImpl photoTagService;
 
     @PostMapping("/register")
     public ResponseEntity<?> Register(HttpServletRequest request, @RequestBody RegisterRequest registerRequest) {
@@ -73,6 +78,7 @@ public class RegisterController {
                 File directory = new File(path);
                 directory.mkdirs();
                 fileTagService.DefaultTag(userId);
+                System.out.println("4");
                 photoTagServiceImpl.DefaultTag(userId);
                 System.out.println("5");
 

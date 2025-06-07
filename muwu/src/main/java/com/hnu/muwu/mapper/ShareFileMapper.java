@@ -31,5 +31,14 @@ public interface ShareFileMapper {
     @Select("SELECT link_id, user_id, created_at, share_path, file_name, url, qrcodePath " +
             "FROM share_links " +
             "WHERE user_id = #{userId}")
+    @Results({
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "fileName", column = "file_name"),
+            @Result(property = "sharePath", column = "share_path"),
+            @Result(property = "linkId", column = "link_id"),
+            @Result(property = "created_at", column = "created_at"),
+            @Result(property = "url", column = "url"),
+            @Result(property = "qrcodePath", column = "qrcodePath"),
+    })
     List<ShareFileEntity> getShareFilesByUserId(Integer userId);
 }
