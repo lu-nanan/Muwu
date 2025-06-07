@@ -125,7 +125,7 @@ public class FileServiceImpl implements FileService {
             try {
                 Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
                 if (result != null) {
-                    return TranslateHelper.translate((String) result.get("result"));
+                    return TranslateHelper.translateEnglish((String) result.get("result"));
                 }
             } catch (IOException | TimeoutException | InterruptedException e) {
                 throw new RuntimeException(e);
@@ -207,7 +207,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public String generateMindmapFromMd(String filePath, Integer userId) {
         String text = FileHelper.readFileContent(filePath);
-        String question = "分析下面的文件内容，参照markmap的风格，输出markdown格式的思维导图，注意，回答应只包含思维导图的内容，不可包含其他任何内容\n" + text;
+        String question = "分析下面的文件内容，整理生成大纲，注意，回答应只包含大纲的内容，不可包含其他任何内容\n" + text;
         try {
             String answer = QianwenHelper.processMessage(question);
 
@@ -259,6 +259,39 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Override
+    public String generateMindmapFromMdS(String filePath, Integer userId) {
+        String text = FileHelper.readFileContent(filePath);
+        try {
+            String outputDir = FileHelper.getFileDirectory(filePath);
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("output_dir", outputDir);
+            message.put("operation", "Generate_mindmap");
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+            if (result != null) {
+                if (result.get("status").equals("success")) {
+                    Path htmlPath = Paths.get((String) result.get("html_path"));
+                    MyFile myFile = FileHelper.createMyFileFromPath(htmlPath.toString(), userId);
+                    String tag = fileTagService.getTagByContent(userId, htmlPath.toString(), FileHelper.readFileContent(htmlPath.toString()));
+                    String description = getFileDescription(htmlPath.toString(), FileHelper.readFileContent(htmlPath.toString()));
+                    assert myFile != null;
+                    this.insertFile(new FinalFile(myFile, tag, description));
+                    return (String) result.get("html_path");
+                } else {
+                    return (String) result.get("result");
+                }
+            } else {
+                return "未收到处理结果或处理超时";
+            }
+
+        } catch (InterruptedException | TimeoutException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException("写入文件失败", e);
+        }
+    }
+
 
     public String photoExtend(String filePath) {
         try {
@@ -290,7 +323,8 @@ public class FileServiceImpl implements FileService {
         return null;
     }
 
-    public Map<String, Object> photoOCR (String filePath,  Integer userId) {
+    @Override
+    public Map<String, Object> photoOCR(String filePath, Integer userId) {
         try {
             HashMap<String, Object> message = new HashMap<>();
             message.put("file_path", filePath);
@@ -338,6 +372,28 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    public String SR(String filePath) {
+        try {
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("operation", "SR");
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+            if (result != null) {
+                String status = (String) result.get("status");
+                if (status.equals("success")) {
+                    return (String) result.get("result");
+                } else {
+                    return null;
+                }
+            } else {
+                System.out.println("未收到处理结果或处理超时");
+                return null;
+            }
+        } catch (IOException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @Override
     public String convertWordToPdf(String filePath, int userId) {
@@ -366,5 +422,28 @@ public class FileServiceImpl implements FileService {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    @Override
+    public String getPdfText(String filePath) {
+        try {
+            HashMap<String, Object> message = new HashMap<>();
+            message.put("file_path", filePath);
+            message.put("operation", "extract_pdf_text");
+            Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
+            if (result != null) {
+                String status = (String) result.get("status");
+                if (status.equals("success")) {
+                    return (String) result.get("result");
+                } else {
+                    return "提取pdf文本失败";
+                }
+            } else {
+                System.out.println("未收到处理结果或处理超时");
+                return "未收到处理结果或处理超时";
+            }
+        } catch (IOException | InterruptedException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

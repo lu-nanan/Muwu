@@ -5,31 +5,31 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
+
+
+
 @Mapper
 public interface ShareFileMapper {
-    @Insert("INSERT INTO share_links(file_id, user_id, share_path, file_name, " +
-            "expires_at, access_password, max_downloads, permission) " +
-            "VALUES(#{fileId}, #{userId}, #{sharePath}, #{fileName}, " +
-            "#{expiresAt}, #{accessPassword}, #{maxDownloads}, #{permission})")
-    @Options(useGeneratedKeys = true, keyProperty = "linkId")
-    int insert(ShareFileEntity shareFile);
 
-    @Select("SELECT * FROM share_links WHERE link_id = #{linkId}")
-    ShareFileEntity selectById( Integer linkId);
+    /**
+     * 插入分享文件记录（linkId为自增主键，无需指定）
+     * @param shareFile 分享文件实体对象
+     * @return 插入的行数
+     */
+    @Insert({
+            "INSERT INTO share_links (user_id, created_at, share_path, file_name, url, qrcodePath)",
+            "VALUES (#{userId}, #{created_at}, #{sharePath}, #{fileName}, #{url}, #{qrcodePath})"
+    })
+    @Options(useGeneratedKeys = true, keyProperty = "linkId", keyColumn = "link_id")
+    int insertShareFile(ShareFileEntity shareFile);
 
-    @Select("SELECT * FROM share_links WHERE user_id = #{userId}")
-    List<ShareFileEntity> selectByUserId( Integer userId);
-
-    @Select("SELECT * FROM share_links WHERE expires_at < NOW()")
-    List<ShareFileEntity> selectExpiredRecords();
-
-    @Update("UPDATE share_links SET " +
-            "expires_at = #{expiresAt}, " +
-            "max_downloads = #{maxDownloads}, " +
-            "permission = #{permission} " +
-            "WHERE link_id = #{linkId}")
-    int update(ShareFileEntity shareFile);
-
-    @Delete("DELETE FROM share_links WHERE link_id = #{linkId}")
-    int deleteById(@Param("linkId") Integer linkId);
+    /**
+     * 根据用户ID查询分享文件记录
+     * @param userId 用户ID
+     * @return 该用户的所有分享文件记录
+     */
+    @Select("SELECT link_id, user_id, created_at, share_path, file_name, url, qrcodePath " +
+            "FROM share_links " +
+            "WHERE user_id = #{userId}")
+    List<ShareFileEntity> getShareFilesByUserId(Integer userId);
 }

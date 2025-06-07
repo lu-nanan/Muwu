@@ -112,3 +112,83 @@ def create_file_qrcode(file_path, base_url, server_directory=None, port=8000):
             "status": "failure",
             "message": f"生成二维码失败: {str(e)}"
         }
+    
+import os
+import qrcode
+from urllib.parse import urlparse
+
+def generate_qr_code(userId, root_path, url):
+    """
+    生成二维码并保存至指定路径。
+
+    参数:
+        userId (int or str): 用户ID，用于创建对应的文件夹。
+        root_path (str): 根路径，用于存放二维码。
+        url (str): 可访问的URL，用于生成二维码。
+
+    功能:
+        1. 从URL中提取文件名，去除扩展名后作为二维码图片的文件名，后缀为.png。
+        2. 生成URL的二维码。
+        3. 将二维码保存至 root_path/userId/ 文件夹内。
+
+    示例:
+        输入:
+            userId = 100000
+            root_path = "F:/qc"
+            url = "http://localhost:8082/file/100000/123.txt"
+        结果:
+            生成的二维码保存为 "F:/qc/100000/123.png"
+    """
+    try:
+        # 解析URL，获取路径部分
+        parsed_url = urlparse(url)
+        path = parsed_url.path
+        # 获取文件名（含扩展名）
+        filename_with_ext = os.path.basename(path)
+        # 分离文件名和扩展名
+        filename, _ = os.path.splitext(filename_with_ext)
+        # 定义二维码图片的文件名
+        qr_filename = f"{filename}.png"
+        
+        # 创建目标文件夹路径
+        target_dir = os.path.join(root_path, str(userId))
+        os.makedirs(target_dir, exist_ok=True)
+        
+        # 定义二维码图片的完整路径
+        qr_path = os.path.join(target_dir, qr_filename)
+        
+        # 生成二维码
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # 保存二维码图片
+        img.save(qr_path)
+        
+        print(f"二维码已成功保存至: {qr_path}")
+
+        return {
+            "status": "success",
+            "qrcode_path": qr_path,
+        }
+        
+    except Exception as e:
+        print(f"生成二维码时出错: {e}")
+        return {
+            "status": "failure",
+            "message": f"生成二维码时出错: {e}"
+        }
+
+# 示例调用
+if __name__ == "__main__":
+    user_id = 100000
+    root_directory = "F:\大三下学期\移动应用开发\仓库\Muwu\python\qrcode"
+    file_url = "https://63793dfe.r21.cpolar.top/file/100000/123.png"
+    generate_qr_code(user_id, root_directory, file_url)

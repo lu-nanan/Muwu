@@ -1,0 +1,13 @@
+```cpp
+#include<iostream>
+using namespace namespace std;
+
+int main() {
+    int i = 0, a[31], n = 1, sum = 0;
+    while(n > 0) {
+        cin >> n;
+        if(n == 1)
+            a[i] = 1; // 输入1的情况
+    }
+}
+```

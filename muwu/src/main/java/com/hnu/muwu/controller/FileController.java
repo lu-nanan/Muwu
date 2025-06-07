@@ -168,7 +168,7 @@ public class FileController {
                     return ResponseEntity.badRequest().body("OCR处理失败");
                 }
             } else if (suggest.equals("Generate_mindmap")) {
-                String resulPath = fileService.generateMindmapFromMd(destinationPathStr, userId);
+                String resulPath = fileService.generateMindmapFromMdS(destinationPathStr, userId);
                 if (resulPath != null) {
                     Map<String, Object> response = new HashMap<>();
                     response.put("message", "Mindmap处理成功");
@@ -275,6 +275,7 @@ public class FileController {
                 item.put("type", "file");
                 item.put("name", file.getFilename());
                 item.put("filePath", file.getFilePath());
+                item.put("fileType", file.getFileType());
                 item.put("uploadTime", file.getUploadTime());
                 item.put("size", file.getSize());
                 item.put("tag", file.getTag());
@@ -293,19 +294,22 @@ public class FileController {
         String fullPath = GlobalVariables.rootPath + File.separator + path;
         File file = new File(fullPath);
         try {
-            // 检查文件是否存在
             if (!file.exists()) {
                 return ResponseEntity.badRequest().body("文件不存在");
             }
-            // 检查是否是文件
             if (!file.isFile()) {
                 return ResponseEntity.badRequest().body("指定路径不是一个文件");
             }
-            // 检查文件所有权
             FinalFile myFile = fileService.getFileByName(file.getName(), userId);
             if (myFile == null) {
                 return ResponseEntity.badRequest().body("用户无权操作该文件");
             }
+
+            String newPath = GlobalVariables.downloadBasePath + File.separator + userId;
+            if(!Files.exists(Paths.get(newPath))){
+                Files.createDirectories(Paths.get(newPath));
+            }
+            FileHelper.copyFile(fullPath, newPath);
 
             String token = UUID.randomUUID().toString();
 
@@ -315,27 +319,33 @@ public class FileController {
             record.setUserId(userId);
             record.setSharePath(path);
             record.setFileName(file.getName());
-            record.setExpiresAt(LocalDateTime.now().plusDays(7));
-            if(shareFileService.saveShare(record)!=1){
-                return ResponseEntity.internalServerError().body("服务器出差了");
-            }
+            record.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            System.out.println(record.getCreatedAt());
+
+//            if(shareFileService.saveShare(record)!=1){
+//                return ResponseEntity.internalServerError().body("服务器出差了");
+//            }
+
             try {
                 HashMap<String, Object> message = new HashMap<>();
                 message.put("server_directory", GlobalVariables.rootPath);
-                message.put("file_path", GlobalVariables.rootPath+File.separator+path);
                 message.put("operation", "create_file_qrcode");
-                message.put("port", 8000);
+                String url = GlobalVariables.downloadBaseUrl + "/file/" + userId + "/" + file.getName();
+                System.out.println(url);
+                message.put("userId", userId);
+                message.put("url", url);
                 Map<String, Object> result = MessageQueueHelper.sendMessageAndGetResult(message);
                 if (result != null) {
                     Map<String, Object> response = new HashMap<>();
                     response.put("status", (String) result.get("status"));
-
                     String qrcodePath = (String) result.get("qrcode_path");
                     byte[] qrcodeBytes = Files.readAllBytes(Paths.get(qrcodePath));
                     String base64QRCode = Base64.getEncoder().encodeToString(qrcodeBytes);
+                    record.setUrl(url);
+                    record.setQrcodePath(qrcodePath);
+                    shareFileService.saveShare(record);
+                    response.put("url", url);
                     response.put("qrcode", base64QRCode);
-
-                    response.put("url", (String) result.get("url"));
                     return ResponseEntity.ok(response);
                 } else {
                     System.out.println("未收到处理结果或处理超时");
@@ -364,5 +374,45 @@ public class FileController {
             return "";
         }
         return filename.substring(dotIndex + 1);
+    }
+
+
+    @GetMapping("/shares")
+    public ResponseEntity<?> getUserShareFiles(@RequestParam("userId") int userId) {
+        try {
+            // 1. 参数校验
+            if (userId <= 0) {
+                return ResponseEntity.badRequest().body("用户ID不合法");
+            }
+
+            // 2. 调用Service获取数据
+            List<ShareFileEntity> shareFiles = shareFileService.getShareFilesByUserId(userId);
+
+            // 3. 处理空结果
+            if (shareFiles == null || shareFiles.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            // 4. 构建返回数据结构
+            List<Map<String, Object>> resultList = new ArrayList<>();
+            for (ShareFileEntity share : shareFiles) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("type", "share");  // 区别于普通文件的标识
+                item.put("linkId", share.getLinkId());
+                item.put("fileName", share.getFileName());
+                item.put("sharePath", share.getSharePath());
+                item.put("url", share.getUrl());
+                item.put("createdAt", share.getCreatedAt());
+                item.put("qrCode", share.getQrcodePath());  // 返回base64格式的二维码
+                resultList.add(item);
+            }
+
+            return ResponseEntity.ok(resultList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body("获取分享文件失败: " + e.getMessage());
+        }
     }
 }

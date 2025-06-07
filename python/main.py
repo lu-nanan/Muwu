@@ -3,7 +3,7 @@ import json
 
 
 from sr_extend import SR
-from qrcode_extend  import create_file_qrcode
+from qrcode_extend  import generate_qr_code
 from markdown_extend import process_markdown_file
 from pdf_extend import *
 from word_extend import convert_word_to_pdf
@@ -48,7 +48,7 @@ channel.exchange_declare(exchange='python-test', durable=True, exchange_type='fa
 
 
 # 文件服务器的端口地址对外的域名
-base_url = f"https://511b136e.r21.cpolar.top"
+base_url = f"https://63793dfe.r21.cpolar.top"
 
 blip_path = r"F:\大三下学期\移动应用开发\图片字幕\model"
 
@@ -57,6 +57,8 @@ vit_b_path = r"F:\\大三下学期\\移动应用开发\\图片分类\\ViT-B-32.p
 gan_path = r"F:\大三下学期\移动应用开发\仓库\srgan_generator_final.pth"
 
 sr_path = r"F:\大三下学期\移动应用开发\仓库\srgan_generator_final.pth"
+
+qr_path = r"F:\大三下学期\移动应用开发\仓库\Muwu\python\qrcode"
 
 temp_dist = r"F:\image.png"
 
@@ -74,7 +76,6 @@ def callback(ch, method, properties, body):
             response = {
                 "status": "success" if result_path else "failure",
                 "result": result_path or "无输出",
-                "file_path": file_path
             }
         elif operation == "OCR":
             results = OCR(file_path)
@@ -111,15 +112,13 @@ def callback(ch, method, properties, body):
                 "result": result[0],
             }
         elif operation == "generate_caption":
-            result = generate_caption(file_path)
+            result = generate_caption(file_path, blip_path)
             response = {
                 "status": "success" if result else "failure",
                 "result": result or "无输出",
             }
         elif operation == "create_file_qrcode":
-            server_directory = message.get("server_directory")
-            port = message.get("port", 8000)
-            result = create_file_qrcode(file_path, base_url ,server_directory, port)
+            result = generate_qr_code(message.get("userId"), qr_path, message.get("url"))
             response = result
         elif operation == "Generate_mindmap":
             output_dir = message.get("output_dir")

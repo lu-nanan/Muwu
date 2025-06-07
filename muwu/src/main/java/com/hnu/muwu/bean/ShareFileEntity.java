@@ -1,5 +1,6 @@
 package com.hnu.muwu.bean;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 public class ShareFileEntity {
@@ -12,13 +13,13 @@ public class ShareFileEntity {
 
     private String accessPassword;
 
-    private LocalDateTime expiresAt;
+    private Timestamp expiresAt;
 
     private Integer maxDownloads = 0;
 
     private Permission permission;
 
-    private LocalDateTime createdAt;
+    private Timestamp created_at;
 
     private String token;
 
@@ -27,6 +28,8 @@ public class ShareFileEntity {
     private String sharePath;
 
     private String fileName;
+    private String url;
+    private String qrcodePath;
 
     public enum Permission {
         VIEW, EDIT
@@ -38,13 +41,17 @@ public class ShareFileEntity {
 
     // 全参构造函数（可选）
     public ShareFileEntity(Integer fileId, Integer userId, String sharePath,
-                           String fileName, LocalDateTime expiresAt) {
+                           String fileName, Timestamp expiresAt) {
         this.fileId = fileId;
         this.userId = userId;
         this.sharePath = sharePath;
         this.fileName = fileName;
         this.expiresAt = expiresAt;
     }
+    public String getUrl() {return url;}
+    public String getQrcodePath(){return qrcodePath;}
+    public void setUrl(String url) {this.url = url;}
+    public void setQrcodePath(String qrcodePath) {this.qrcodePath = qrcodePath;}
 
     public Integer getLinkId() {
         return linkId;
@@ -78,11 +85,11 @@ public class ShareFileEntity {
         this.accessPassword = accessPassword;
     }
 
-    public LocalDateTime getExpiresAt() {
+    public Timestamp getExpiresAt() {
         return expiresAt;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
+    public void setExpiresAt(Timestamp expiresAt) {
         this.expiresAt = expiresAt;
     }
 
@@ -102,12 +109,12 @@ public class ShareFileEntity {
         this.permission = permission;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Timestamp getCreatedAt() {
+        return created_at;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedAt(Timestamp createdAt) {
+        this.created_at = created_at;
     }
 
     public String getSharePath() {

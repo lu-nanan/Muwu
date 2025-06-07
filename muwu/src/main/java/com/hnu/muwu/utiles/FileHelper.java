@@ -180,6 +180,35 @@ public class FileHelper {
         return false;
     }
 
+    public static String copyFile(String sourceFilePath, String targetFolderPath) {
+        try {
+            // 检查源文件是否存在
+            Path sourcePath = Paths.get(sourceFilePath);
+            if (!Files.exists(sourcePath)) {
+                System.err.println("错误：源文件不存在 - " + sourceFilePath);
+                return null;
+            }
+
+            // 确保目标文件夹存在
+            Path targetFolder = Paths.get(targetFolderPath);
+            Files.createDirectories(targetFolder);
+
+            // 构建目标文件路径（保持原文件名）
+            String fileName = sourcePath.getFileName().toString();
+            Path targetPath = targetFolder.resolve(fileName);
+
+            // 执行文件拷贝（使用标准的NIO API）
+            Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            System.out.println("文件已成功拷贝至: " + targetPath);
+            return targetPath.toString();
+
+        } catch (IOException e) {
+            System.err.println("文件拷贝失败: " + e.getMessage());
+            return null;
+        }
+    }
+
     // 示例用法
     public static void main(String[] args) {
         String filePath = "F:\\大三下学期\\移动应用开发\\仓库\\Muwu\\项目计划书s.html";

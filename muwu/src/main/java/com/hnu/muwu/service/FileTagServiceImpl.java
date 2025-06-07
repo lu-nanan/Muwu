@@ -1,7 +1,8 @@
 package com.hnu.muwu.service;
 
+import com.hnu.muwu.bean.FileTag;
+import com.hnu.muwu.bean.PhotoTag;
 import com.hnu.muwu.mapper.FileTagMapper;
-import com.hnu.muwu.utiles.FileHelper;
 import com.hnu.muwu.utiles.QianwenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,28 @@ public class FileTagServiceImpl implements FileTagService {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return null;
+        }
+    }
+    @Override
+    public int insert(FileTag fileTag) {return fileTagMapper.insertFileTag(fileTag);}
+    @Override
+    public int update(String userId,String oldTag,String newTag){
+        return fileTagMapper.updateFileTag(userId,oldTag,newTag);
+    }
+    @Override
+    public int delete(String userId,String tag){
+        return fileTagMapper.deleteFileTagByUserIdAndTag(userId,tag);
+    }
+    @Override
+    public void DefaultTag(int userId){
+
+        String[] fileTag={"工作","学习","生活","其他"};
+        FileTag fileTag1=new FileTag();
+        fileTag1.setUserId(userId);
+        FileTagServiceImpl fileTagService = new FileTagServiceImpl();
+        for(String tag:fileTag){
+            fileTag1.setTag(tag);
+            fileTagService.insert(fileTag1);
         }
     }
 }

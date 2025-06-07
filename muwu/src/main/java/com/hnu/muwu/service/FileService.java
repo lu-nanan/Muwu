@@ -4,6 +4,7 @@ import com.hnu.muwu.bean.FinalFile;
 import com.hnu.muwu.bean.MyFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface FileService {
 
@@ -27,7 +28,13 @@ public interface FileService {
 
     String generateMindmapFromMd(String filePath, Integer userId);
 
+    String generateMindmapFromMdS(String filePath, Integer userId);
+
+    Map<String, Object> photoOCR(String filePath, Integer userId);
+
     String getFileDescription(String filePath, String content);
 
     String convertWordToPdf(String filePath, int userId);
+
+    String getPdfText(String filePath);
 }

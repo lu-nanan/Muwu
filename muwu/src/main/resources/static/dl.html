@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件下载接口测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .test-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .test-btn:hover {
+            background-color: #1e7e34;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 50px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .examples h3 {
+            color: #495057;
+            margin-top: 0;
+        }
+
+        .example-item {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: white;
+            border-left: 4px solid #007bff;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>文件下载接口测试</h1>
+
+    <form id="downloadForm">
+        <div class="form-group">
+            <label for="baseUrl">接口基础URL:</label>
+            <input type="text" id="baseUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+        </div>
+
+        <div class="form-group">
+            <label for="filePath">文件路径:</label>
+            <input type="text" id="filePath" placeholder="例如: documents/test.pdf" required>
+        </div>
+
+        <div class="form-group">
+            <label for="userId">用户ID:</label>
+            <input type="number" id="userId" placeholder="例如: 123" required>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="download-btn" onclick="downloadFile()">直接下载</button>
+            <button type="button" class="test-btn" onclick="testDownload()">测试连接</button>
+        </div>
+    </form>
+
+    <div id="result" class="result" style="display: none;"></div>
+
+    <div class="examples">
+        <h3>使用示例:</h3>
+        <div class="example-item">
+            文件路径: documents/report.pdf
+        </div>
+        <div class="example-item">
+            文件路径: images/photo.jpg
+        </div>
+        <div class="example-item">
+            文件路径: data/export.xlsx
+        </div>
+        <p><strong>注意:</strong> 文件路径是相对于服务器根目录的相对路径</p>
+    </div>
+</div>
+
+<script>
+    function showResult(message, type) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = message;
+        resultDiv.className = `result ${type}`;
+        resultDiv.style.display = 'block';
+    }
+
+    function getFormData() {
+        const baseUrl = document.getElementById('baseUrl').value.trim();
+        const filePath = document.getElementById('filePath').value.trim();
+        const userId = document.getElementById('userId').value.trim();
+
+        if (!filePath || !userId) {
+            showResult('请填写完整的文件路径和用户ID', 'error');
+            return null;
+        }
+
+        return { baseUrl, filePath, userId };
+    }
+
+    function downloadFile() {
+        const data = getFormData();
+        if (!data) return;
+
+        const downloadUrl = `${data.baseUrl}/get?filePath=${encodeURIComponent(data.filePath)}&userId=${data.userId}`;
+
+        showResult('正在下载文件...', 'info');
+
+        // 创建隐藏的下载链接
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 显示下载信息
+        setTimeout(() => {
+            showResult(`下载链接: ${downloadUrl}<br>如果下载没有开始，请检查文件路径和服务器状态`, 'success');
+        }, 500);
+    }
+
+    function testDownload() {
+        const data = getFormData();
+        if (!data) return;
+
+        const testUrl = `${data.baseUrl}/get?filePath=${encodeURIComponent(data.filePath)}&userId=${data.userId}`;
+
+        showResult('正在测试连接...', 'info');
+
+        fetch(testUrl, {
+            method: 'HEAD'  // 使用HEAD请求只获取响应头，不下载文件内容
+        })
+            .then(response => {
+                if (response.ok) {
+                    const contentLength = response.headers.get('Content-Length');
+                    const contentType = response.headers.get('Content-Type');
+                    const contentDisposition = response.headers.get('Content-Disposition');
+
+                    let message = `✅ 连接成功！<br>`;
+                    message += `状态码: ${response.status}<br>`;
+                    if (contentLength) message += `文件大小: ${(contentLength / 1024).toFixed(2)} KB<br>`;
+                    if (contentType) message += `文件类型: ${contentType}<br>`;
+                    if (contentDisposition) message += `下载头: ${contentDisposition}<br>`;
+                    message += `<br>🔗 测试URL: ${testUrl}`;
+
+                    showResult(message, 'success');
+                } else {
+                    showResult(`❌ 请求失败<br>状态码: ${response.status}<br>状态文本: ${response.statusText}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(`❌ 连接错误: ${error.message}<br>请检查服务器地址和网络连接`, 'error');
+            });
+    }
+
+    // 页面加载时的提示
+    window.onload = function() {
+        showResult('请填写文件路径和用户ID，然后点击按钮进行测试或下载', 'info');
+    };
+</script>
+</body>
+</html>

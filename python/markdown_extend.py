@@ -64,3 +64,9 @@ def process_markdown_file(input_path, output_dir):
             "status": "failure",
             "result": f"Unexpected error: {str(e)}"
         }
+
+if __name__ == "__main__":
+    input_path = r"F:\大三下学期\移动应用开发\仓库\Muwu\处理图片检索.md"
+    output_dir = r"F:\大三下学期\移动应用开发\仓库\Muwu"
+    result = process_markdown_file(input_path, output_dir)
+    print(result)

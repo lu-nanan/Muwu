@@ -2,6 +2,8 @@ package com.hnu.muwu.service;
 
 import com.hnu.muwu.bean.ShareFileEntity;
 
+import java.util.List;
+
 
 public interface ShareFileService {
 
@@ -68,4 +70,5 @@ public interface ShareFileService {
      * 保存分享记录
      */
     int saveShare(ShareFileEntity share);
+    List<ShareFileEntity> getShareFilesByUserId(Integer userId);
 }
