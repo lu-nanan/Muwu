@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "历史",
+  "usingComponents": {
+    "my-search-input": "../../components/mySearchInput",
+    "history-list-uvue": "../../components/historyList"
+  }
+}

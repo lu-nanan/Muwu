@@ -1,0 +1,19 @@
+
+.file-item {
+		width: 90%;
+		background-color: #fff;
+}
+.file-item-container {
+		background-color: #FFD700;
+}
+.file-list-container {
+		flex: 1;
+		margin: 0 15px;
+		background-color: #fff;
+		border-radius: 12px;
+		overflow: hidden;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.file-scroll-view {
+		height: 100%;
+}

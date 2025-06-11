@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "uni-app",
+  "backgroundColorContent": "#8D8DC1",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "my-navagation-bar": "../../components/myNavigationBar",
+    "my-search-input": "../../components/mySearchInput",
+    "space-usage-display": "../../components/spaceUsageDisplay",
+    "cloud-file-list": "../../components/cloudFileList"
+  }
+}

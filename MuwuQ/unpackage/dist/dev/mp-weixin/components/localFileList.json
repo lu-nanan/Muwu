@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "local-file-list-item": "./localFileListItem"
+  }
+}

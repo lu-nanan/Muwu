@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/Login/apLogin",
+    "pages/Login/vcLogin",
+    "pages/index/index",
+    "pages/local/local",
+    "pages/ShareHistory/ShareHistory",
+    "pages/My/My",
+    "pages/ChangePass/ChangePass"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#333333",
+    "selectedColor": "#8D8DC1",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/local/local",
+        "text": "本地"
+      },
+      {
+        "pagePath": "pages/index/index",
+        "text": "云盘"
+      },
+      {
+        "pagePath": "pages/My/My",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

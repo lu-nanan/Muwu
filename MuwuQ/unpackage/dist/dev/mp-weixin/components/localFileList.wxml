@@ -1,0 +1,1 @@
+<view><view class="file-list-container"><scroll-view scroll-y="true" class="file-scroll-view"><view wx:for="{{a}}" wx:for-item="file" wx:key="e"><view class="{{[file.c && 'file-item-container']}}" bindtap="{{file.d}}"><local-file-list-item wx:if="{{file.b}}" class="file-item" u-i="{{file.a}}" bind:__l="__l" u-p="{{file.b}}"/></view></view></scroll-view></view></view>

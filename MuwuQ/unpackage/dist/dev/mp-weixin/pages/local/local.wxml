@@ -1,0 +1,1 @@
+<view class="content"><my-navagation-bar u-i="6c14cc79-0" bind:__l="__l"></my-navagation-bar><my-search-input u-i="6c14cc79-1" bind:__l="__l"></my-search-input><space-usage-display u-i="6c14cc79-2" bind:__l="__l"></space-usage-display><local-file-list u-i="6c14cc79-3" bind:__l="__l"></local-file-list></view>

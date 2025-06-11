@@ -1,0 +1,1 @@
+<view class="containerall"><view class="containerone"><text>aaa</text><text>@</text></view><view class="containertwo"><text bindtap="{{a}}">历史</text><text bindtap="{{b}}">修改</text><text> 3</text></view><button class="btn-1"> 透出</button></view>

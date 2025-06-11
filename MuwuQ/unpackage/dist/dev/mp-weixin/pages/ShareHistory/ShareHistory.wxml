@@ -1,0 +1,1 @@
+<view style="background-color:#8D8DC1"><my-search-input style="" u-i="42b3ff01-0" bind:__l="__l"></my-search-input><history-list-uvue u-i="42b3ff01-1" bind:__l="__l"></history-list-uvue></view>

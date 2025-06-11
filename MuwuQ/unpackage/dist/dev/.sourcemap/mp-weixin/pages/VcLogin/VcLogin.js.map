@@ -1,0 +1,1 @@
+{"version":3,"file":"VcLogin.js","sources":["../../../uniapp/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvVmNMb2dpbi9WY0xvZ2luLnV2dWU"],"sourcesContent":["import MiniProgramPage from 'D:/xiaochengxu/xiangmu1/xiangmu111/pages/VcLogin/VcLogin.uvue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AACA,GAAG,WAAW,eAAe;"}

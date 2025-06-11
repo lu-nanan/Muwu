@@ -1,0 +1,1 @@
+<view><uni-search-bar wx:if="{{d}}" class="searchbar" bindconfirm="{{a}}" bindblur="{{b}}" bindfocus="{{c}}" u-i="0945d110-0" bind:__l="__l" u-p="{{d}}"></uni-search-bar></view>

@@ -1,0 +1,1 @@
+<view class="file-item"><view class="file-icon"><text>haha</text></view><view class="file-divider"></view><view class="file-info"><view class="file-nametag"><text class="file-name">{{a}}</text><view class="file-tag">{{b}}</view></view><view class="file-datesize"><text class="file-date">{{c}}</text><text class="file-size">{{d}}</text></view></view></view>

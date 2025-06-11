@@ -1,0 +1,1 @@
+{"version":3,"file":"local.js","sources":["../../../uniapp/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvbG9jYWwvbG9jYWwudnVl"],"sourcesContent":["import MiniProgramPage from 'D:/xiaochengxu/xiangmu1/xiangmu111/pages/local/local.vue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AACA,GAAG,WAAW,eAAe;"}

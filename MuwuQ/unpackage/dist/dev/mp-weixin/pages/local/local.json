@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "本地页面",
+  "usingComponents": {
+    "my-navagation-bar": "../../components/myNavigationBar",
+    "my-search-input": "../../components/mySearchInput",
+    "space-usage-display": "../../components/spaceUsageDisplay",
+    "local-file-list": "../../components/localFileList"
+  }
+}

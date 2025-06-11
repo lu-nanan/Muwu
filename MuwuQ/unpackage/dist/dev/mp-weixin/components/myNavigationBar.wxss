@@ -1,0 +1,49 @@
+
+/* 导航栏样式 */
+.custom-navbar {
+	position: fixed;
+	top: var(--status-bar-height); /* 自适应状态栏高度 */
+	left: 0;
+	right: 0;
+	height: 8%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	background-color: #fff;
+	z-index: 999;
+	border-bottom: 1px solid #f0f0f0;
+}
+.nav-item {
+	flex: 1;
+	text-align: center;
+	padding: 0 15px;
+}
+.nav-item-text {
+	text-align: center;
+	font-size: 14px;
+	color: #333;
+}
+
+/* 批量操作状态样式 */
+.batch-active {
+	color: #007AFF;
+}
+
+/* 内容容器 */
+.content-wrapper {
+	margin-top: 120rpx; /* 为固定的导航栏腾出空间 */
+	width: 100%;
+	padding: 20rpx;
+	box-sizing: border-box;
+}
+.content {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding: 40rpx 20rpx;
+	background: #fff;
+	border-radius: 10rpx;
+	box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+}

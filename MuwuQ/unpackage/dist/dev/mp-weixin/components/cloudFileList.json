@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cloud-file-list-item": "./cloudFileListItem"
+  }
+}

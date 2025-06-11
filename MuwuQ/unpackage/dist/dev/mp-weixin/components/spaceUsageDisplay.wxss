@@ -1,0 +1,96 @@
+
+/* 内容容器 */
+.content-wrapper {
+		/* 为固定的导航栏腾出空间 */
+		width: 100%;
+		padding: 20rpx;
+		box-sizing: border-box;
+}
+.content {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 40rpx 20rpx;
+		background: #8d8dc1;
+		border-radius: 10rpx;
+/* 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05); */
+}
+
+	/* 环状图容器 */
+.chart-container {
+		width: 38%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+}
+.chart-inner {
+		position: relative;
+		width: 240rpx;
+		height: 240rpx;
+}
+
+	/* 环形进度条 */
+.ring-progress {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		mask: radial-gradient(transparent 55%, white 56%);
+		-webkit-mask: radial-gradient(transparent 55%, white 56%);
+}
+.ring-inner {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+}
+.percentage {
+		font-size: 48rpx;
+		font-weight: bold;
+		color: #2FC25B;
+}
+.usage-label {
+		position: absolute;
+		font-size: 24rpx;
+		color: #ffffff;
+/* 		margin-top: 6rpx; */
+}
+
+	/* 数据容器 */
+.data-container {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		padding-left: 40rpx;
+}
+.data-item {
+		margin-bottom: 30rpx;
+		width: 100%;
+}
+.label {
+		display: block;
+		font-size: 26rpx;
+		color: #dfdfdf;
+		margin-bottom: 8rpx;
+}
+.value {
+		font-size: 32rpx;
+		color: #ffffff;
+		font-weight: bold;
+}
+.infos{
+		font-size: 26rpx;
+		color: #ffffff;
+		margin-bottom: 8rpx;
+}

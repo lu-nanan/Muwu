@@ -1,0 +1,7 @@
+
+.content {
+  background-color: #8D8DC1;
+  width: 100%;
+  height: 100%;
+}
+

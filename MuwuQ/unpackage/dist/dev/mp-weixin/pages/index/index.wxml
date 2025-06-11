@@ -1,0 +1,1 @@
+<view class="content"><my-navagation-bar u-i="c74a01f2-0" bind:__l="__l"></my-navagation-bar><my-search-input style="margin-top:15%" u-i="c74a01f2-1" bind:__l="__l"></my-search-input><space-usage-display u-i="c74a01f2-2" bind:__l="__l"></space-usage-display><cloud-file-list u-i="c74a01f2-3" bind:__l="__l"></cloud-file-list></view>

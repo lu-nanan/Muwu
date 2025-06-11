@@ -1,0 +1,103 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path" : "pages/Login/apLogin",
+			"style" : 
+			{
+				"navigationBarTitleText" : "账号密码登录"
+				
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "uni-app",
+				"backgroundColorContent": "#fD8DC1",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/local/local",
+			"style" : 
+			{
+				"navigationBarTitleText" : "本地上传"
+			}
+		},
+		
+		{
+			"path" : "pages/Register/Register",
+			"style" : 
+			{
+				"navigationBarTitleText" : "注册"
+			}
+		},
+		{
+			"path" : "pages/Login/vcLogin",
+			"style" : 
+			{
+				"navigationBarTitleText" : "验证码登录"
+			}
+		},
+		{
+			"path" : "pages/My/My",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的"
+			}
+		},
+		{
+			"path" : "pages/ChangePass/ChangePass",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的"
+			}
+		},
+		{
+			"path" : "pages/ShareHistory/ShareHistory",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的"
+			}
+		},
+		{
+			"path" : "pages/taglibarily/taglibarily",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path" : "pages/taglibarily/tagUpload",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {},
+	"tabBar": {
+			"color": "#333333",
+			"selectedColor": "#8D8DC1",
+			"backgroundColor": "#ffffff",
+			"list": [
+				{
+					"pagePath": "pages/local/local",
+					"text": "本地"
+				},
+				{
+					"pagePath": "pages/index/index",
+					"text": "云盘"
+				},
+				{
+					"pagePath": "pages/My/My",
+					"text": "我的"
+				}
+			]
+		}
+}
