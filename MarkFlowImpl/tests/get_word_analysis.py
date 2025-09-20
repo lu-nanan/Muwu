@@ -52,6 +52,6 @@ def get_word_analysis(word: str, api_key: str) -> dict:
 
 # 使用示例
 if __name__ == "__main__":
-    API_KEY = "sk-15f426944d464eb4bd16a55f581232e1"  # 替换为实际API密钥
+    API_KEY = ""  # 替换为实际API密钥
     word_data = get_word_analysis("word", API_KEY)
     print(json.dumps(word_data, indent=2, ensure_ascii=False))
