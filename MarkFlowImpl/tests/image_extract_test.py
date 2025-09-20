@@ -200,8 +200,8 @@ class ImageRecognitionTester:
 # 使用示例
 if __name__ == "__main__":
     # 设置API信息
-    API_KEY = "sk-15f426944d464eb4bd16a55f581232e1"  # 替换为您的API密钥
-    IMAGE_PATH = "D:/software/PyCharm/PythonProject/MarkFlow/Screenshot_20250908_102429_com.huawei.hinote.png"  # 替换为您的图片路径
+    API_KEY = ""  # 替换为您的API密钥
+    IMAGE_PATH = ""  # 替换为您的图片路径
 
     # 测试图像识别
     result = ImageRecognitionTester.test_qwen_vl_max(
