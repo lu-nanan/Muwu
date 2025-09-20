@@ -14,7 +14,7 @@ import urllib3
 
 
 # 通义千问API配置 - 请替换为你的实际配置
-TONGYI_API_KEY = "sk-15f426944d464eb4bd16a55f581232e1"  # 你的通义千问API密钥
+TONGYI_API_KEY = ""  # 你的通义千问API密钥
 TONGYI_API_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
 # 禁用SSL警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
