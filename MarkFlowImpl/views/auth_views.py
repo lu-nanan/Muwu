@@ -126,7 +126,7 @@ def verification(request):
         message = f'您的验证码是：{verification_code}，请在5分钟内使用。'
         try:
             # 发送邮件
-            send_mail(subject, message, "2022412062@qq.com", [email])
+            send_mail(subject, message, "", [email])
             print(f"[成功] 验证码邮件已发送至: {email}")
         except smtplib.SMTPException as e:
             # SMTP 协议相关错误（如连接失败、认证错误）
