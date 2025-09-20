@@ -94,7 +94,7 @@ def word_search(request):
             # 获取单词分析数据
             not_found_words_analysis = batch_get_word_analysis2(
                 not_found_words,
-                "sk-15f426944d464eb4bd16a55f581232e1"
+                ""
             )
             import_words_to_db(not_found_words_analysis)
             word_queryset = BaseVocabulary.objects.filter(word__in=not_found_words)
@@ -200,7 +200,7 @@ def process_words_request1(words_data, user_id=None):
         # 获取单词分析数据
         not_found_words_analysis = batch_get_word_analysis2(
             not_found_words,
-            "sk-15f426944d464eb4bd16a55f581232e1"
+            ""
         )
         import_words_to_db(not_found_words_analysis)
 
