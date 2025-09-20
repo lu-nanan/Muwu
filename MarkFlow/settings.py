@@ -81,10 +81,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': "markflow",
-        "USER":"cyx",
-        "PASSWORD":"12345678",
-        "HOST":"localhost",
-        "PORT":"3306",
+        "USER":"###",
+        "PASSWORD":"#####",
+        "HOST":"#####",
+        "PORT":"#####",
     }
 }
 
@@ -117,18 +117,18 @@ REST_FRAMEWORK = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.qq.com'  # QQ邮箱SMTP服务器
-EMAIL_PORT = 587  # QQ邮箱SMTP服务器端口
+EMAIL_HOST = ''  # QQ邮箱SMTP服务器
+EMAIL_PORT =   # QQ邮箱SMTP服务器端口
 EMAIL_USE_TLS = True  # 使用TLS加密
-EMAIL_HOST_USER = '2022412062@qq.com'  # 您的QQ邮箱地址
-EMAIL_HOST_PASSWORD = 'wrvkfswovnhzbbff'  # 您的QQ邮箱SMTP授权码
+EMAIL_HOST_USER = ''  # 您的QQ邮箱地址
+EMAIL_HOST_PASSWORD = ''  # 您的QQ邮箱SMTP授权码
 
 
 # settings.py
-REDIS_HOST = 'localhost'  # Redis 服务器地址（本地开发用）
-REDIS_PORT = 6379         # Redis 默认端口
-REDIS_DB = 0              # 使用的数据库编号（0-15）
-REDIS_PASSWORD = "123456"# 若 Redis 有密码，添加此行
+REDIS_HOST = ''  # Redis 服务器地址（本地开发用）
+REDIS_PORT =          # Redis 默认端口
+REDIS_DB =               # 使用的数据库编号（0-15）
+REDIS_PASSWORD = ""# 若 Redis 有密码，添加此行
 REDIS_DEFAULT_EXPIRE = 1
 
 # settings.py
@@ -136,7 +136,7 @@ REDIS_DEFAULT_EXPIRE = 1
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://localhost:6379/1",  # Redis服务器地址
+        "LOCATION": "",  # Redis服务器地址
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100},  # 连接池配置
