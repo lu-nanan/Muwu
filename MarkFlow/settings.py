@@ -201,8 +201,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # MarkFlow/settings.py
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # 消息代理地址（Redis，与缓存复用）
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # 任务结果存储地址（可选，用于查看任务状态）
+CELERY_BROKER_URL = ''  # 消息代理地址（Redis，与缓存复用）
+CELERY_RESULT_BACKEND = ''  # 任务结果存储地址（可选，用于查看任务状态）
 CELERY_ACCEPT_CONTENT = ['json']  # 支持的内容格式
 CELERY_TASK_SERIALIZER = 'json'  # 任务序列化方式
 CELERY_RESULT_SERIALIZER = 'json'  # 结果序列化方式
