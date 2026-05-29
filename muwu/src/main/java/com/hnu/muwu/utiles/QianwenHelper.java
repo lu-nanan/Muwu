@@ -39,7 +39,7 @@ public class QianwenHelper {
         GenerationParam param = GenerationParam.builder()
                 .model("qwen-max")
                 .messages(messages)
-                .apiKey("sk-d5f513233df44e37b00ac124cb589492")
+                .apiKey("sk-")
                 .resultFormat(GenerationParam.ResultFormat.MESSAGE)
                 .topP(0.8)
                 .build();
